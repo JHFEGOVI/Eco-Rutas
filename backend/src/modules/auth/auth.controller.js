@@ -7,13 +7,13 @@ const loginController = async (req, res, next) => {
     if (!username || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Username y password son requeridos',
+        message: 'El usuario y la contraseña son requeridos',
       });
     }
 
-    const data = await login(username, password);
+    const datos = await login(username, password);
 
-    res.status(200).json({ success: true, data });
+    res.status(200).json({ success: true, data: datos });
   } catch (error) {
     next(error);
   }

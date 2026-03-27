@@ -3,39 +3,39 @@ const jwt = require('jsonwebtoken');
 const pool = require('../../config/database');
 
 const login = async (username, password) => {
-  const result = await pool.query(
+  const resultado = await pool.query(
     'SELECT * FROM usuarios WHERE username = $1 AND activo = true',
     [username]
   );
 
-  const user = result.rows[0];
+  const usuario = resultado.rows[0];
 
-  if (!user) {
+  if (!usuario) {
     const error = new Error('Credenciales inválidas');
     error.status = 401;
     throw error;
   }
 
-  const isMatch = await bcrypt.compare(password, user.password_hash);
+  const coincide = await bcrypt.compare(password, usuario.password_hash);
 
-  if (!isMatch) {
+  if (!coincide) {
     const error = new Error('Credenciales inválidas');
     error.status = 401;
     throw error;
   }
 
-  const payload = {
-    id: user.id,
-    username: user.username,
-    rol: user.rol,
-    nombre: user.nombre,
+  const carga = {
+    id: usuario.id,
+    username: usuario.username,
+    rol: usuario.rol,
+    nombre: usuario.nombre,
   };
 
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
+  const token = jwt.sign(carga, process.env.JWT_SECRET, { expiresIn: '8h' });
 
   return {
     token,
-    user: { id: user.id, username: user.username, rol: user.rol, nombre: user.nombre },
+    user: { id: usuario.id, username: usuario.username, rol: usuario.rol, nombre: usuario.nombre },
   };
 };
 
