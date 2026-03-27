@@ -4,6 +4,7 @@ require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const authRoutes = require('./modules/auth/auth.routes');
 const vehiculosRoutes = require('./modules/vehiculos/vehiculos.routes');
+const usuariosRoutes = require('./modules/usuarios/usuarios.routes');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.get('/api/health', (req, res) => {
 });
 app.use('/api/auth', authRoutes);
 app.use('/api/vehiculos', vehiculosRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 // Middleware de errores (debe ir al final)
 app.use(errorHandler);
