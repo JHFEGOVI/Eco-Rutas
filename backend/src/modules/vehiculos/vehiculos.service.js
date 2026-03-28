@@ -1,14 +1,14 @@
 const pool = require('../../config/database');
 const { crearVehiculoExterno } = require('../../services/externalApiService');
 
-const getAll = async () => {
+const obtenerTodos = async () => {
   const resultado = await pool.query(
     'SELECT * FROM vehiculos ORDER BY created_at DESC'
   );
   return resultado.rows;
 };
 
-const getById = async (id) => {
+const obtenerPorId = async (id) => {
   const resultado = await pool.query(
     'SELECT * FROM vehiculos WHERE id = $1',
     [id]
@@ -21,7 +21,7 @@ const getById = async (id) => {
   return resultado.rows[0];
 };
 
-const create = async ({ placa, marca, modelo, capacidad_kg, estado, perfil_id_externo }) => {
+const crear = async ({ placa, marca, modelo, capacidad_kg, estado, perfil_id_externo }) => {
   // Insertar en tabla local
   const resultado = await pool.query(
     `INSERT INTO vehiculos (placa, marca, modelo, capacidad_kg, estado)
@@ -52,8 +52,8 @@ const create = async ({ placa, marca, modelo, capacidad_kg, estado, perfil_id_ex
   return vehiculo;
 };
 
-const update = async (id, { placa, marca, modelo, capacidad_kg, estado }) => {
-  await getById(id); // lanza 404 si no existe
+const actualizar = async (id, { placa, marca, modelo, capacidad_kg, estado }) => {
+  await obtenerPorId(id); // lanza 404 si no existe
 
   const resultado = await pool.query(
     `UPDATE vehiculos
@@ -70,8 +70,8 @@ const update = async (id, { placa, marca, modelo, capacidad_kg, estado }) => {
   return resultado.rows[0];
 };
 
-const remove = async (id) => {
-  await getById(id); // lanza 404 si no existe
+const desactivar = async (id) => {
+  await obtenerPorId(id); // lanza 404 si no existe
 
   const resultado = await pool.query(
     `UPDATE vehiculos SET estado = 'inactivo', updated_at = NOW()
@@ -81,4 +81,4 @@ const remove = async (id) => {
   return resultado.rows[0];
 };
 
-module.exports = { getAll, getById, create, update, remove };
+module.exports = { obtenerTodos, obtenerPorId, crear, actualizar, desactivar };

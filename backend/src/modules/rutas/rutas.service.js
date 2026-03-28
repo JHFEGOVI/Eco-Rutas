@@ -1,27 +1,26 @@
 const pool = require('../../config/database');
 const { crearRutaExterna } = require('../../services/externalApiService');
 
+const CAMPOS_SELECCION = `id, nombre, descripcion, ST_AsGeoJSON(geometria) AS geometria, activa, external_id, created_at, updated_at`;
+
+const parsearGeometria = (ruta) => ({
+  ...ruta,
+  geometria: ruta.geometria ? JSON.parse(ruta.geometria) : null,
+});
+
 const obtenerTodas = async () => {
   const resultado = await pool.query(
-    `SELECT id, nombre, descripcion,
-            ST_AsGeoJSON(geometria) AS geometria,
-            activa, external_id, created_at, updated_at
+    `SELECT ${CAMPOS_SELECCION}
      FROM rutas
      WHERE activa = true
      ORDER BY created_at DESC`
   );
-  // Parsear el string GeoJSON a objeto
-  return resultado.rows.map((ruta) => ({
-    ...ruta,
-    geometria: JSON.parse(ruta.geometria),
-  }));
+  return resultado.rows.map(parsearGeometria);
 };
 
 const obtenerPorId = async (id) => {
   const resultado = await pool.query(
-    `SELECT id, nombre, descripcion,
-            ST_AsGeoJSON(geometria) AS geometria,
-            activa, external_id, created_at, updated_at
+    `SELECT ${CAMPOS_SELECCION}
      FROM rutas
      WHERE id = $1`,
     [id]
@@ -31,10 +30,7 @@ const obtenerPorId = async (id) => {
     error.status = 404;
     throw error;
   }
-  return {
-    ...resultado.rows[0],
-    geometria: JSON.parse(resultado.rows[0].geometria),
-  };
+  return parsearGeometria(resultado.rows[0]);
 };
 
 const crear = async ({ nombre, descripcion, geometria }) => {
@@ -42,15 +38,10 @@ const crear = async ({ nombre, descripcion, geometria }) => {
   const resultado = await pool.query(
     `INSERT INTO rutas (nombre, descripcion, geometria)
      VALUES ($1, $2, ST_GeomFromGeoJSON($3))
-     RETURNING id, nombre, descripcion,
-               ST_AsGeoJSON(geometria) AS geometria,
-               activa, external_id, created_at, updated_at`,
+     RETURNING ${CAMPOS_SELECCION}`,
     [nombre, descripcion, JSON.stringify(geometria)]
   );
-  const ruta = {
-    ...resultado.rows[0],
-    geometria: JSON.parse(resultado.rows[0].geometria),
-  };
+  const ruta = parsearGeometria(resultado.rows[0]);
 
   // Intentar registrar en la API externa (no bloquea el flujo)
   const idExterno = await crearRutaExterna({
@@ -84,9 +75,7 @@ const actualizar = async (id, { nombre, descripcion, geometria }) => {
            geometria   = ST_GeomFromGeoJSON($3),
            updated_at  = NOW()
        WHERE id = $4
-       RETURNING id, nombre, descripcion,
-                 ST_AsGeoJSON(geometria) AS geometria,
-                 activa, external_id, created_at, updated_at`,
+       RETURNING ${CAMPOS_SELECCION}`,
       [nombre, descripcion, JSON.stringify(geometria), id]
     );
   } else {
@@ -96,17 +85,12 @@ const actualizar = async (id, { nombre, descripcion, geometria }) => {
            descripcion = COALESCE($2, descripcion),
            updated_at  = NOW()
        WHERE id = $3
-       RETURNING id, nombre, descripcion,
-                 ST_AsGeoJSON(geometria) AS geometria,
-                 activa, external_id, created_at, updated_at`,
+       RETURNING ${CAMPOS_SELECCION}`,
       [nombre, descripcion, id]
     );
   }
 
-  return {
-    ...resultado.rows[0],
-    geometria: JSON.parse(resultado.rows[0].geometria),
-  };
+  return parsearGeometria(resultado.rows[0]);
 };
 
 const desactivar = async (id) => {
@@ -115,15 +99,10 @@ const desactivar = async (id) => {
   const resultado = await pool.query(
     `UPDATE rutas SET activa = false, updated_at = NOW()
      WHERE id = $1
-     RETURNING id, nombre, descripcion,
-               ST_AsGeoJSON(geometria) AS geometria,
-               activa, external_id, created_at, updated_at`,
+     RETURNING ${CAMPOS_SELECCION}`,
     [id]
   );
-  return {
-    ...resultado.rows[0],
-    geometria: JSON.parse(resultado.rows[0].geometria),
-  };
+  return parsearGeometria(resultado.rows[0]);
 };
 
 module.exports = { obtenerTodas, obtenerPorId, crear, actualizar, desactivar };
