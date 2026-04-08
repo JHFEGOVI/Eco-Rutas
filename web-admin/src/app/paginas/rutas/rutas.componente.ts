@@ -359,13 +359,13 @@ export class RutasComponente implements OnInit, AfterViewInit {
   private dibujarPuntosMapa(): void {
     this.limpiarCapasTemporales();
     
-    // Draw markers
+    // Dibujar marcadores
     this.puntosRuta.forEach((pt) => {
       const marcador = L.marker([pt[0], pt[1]]).addTo(this.map);
       this.marcadores.push(marcador);
     });
 
-    // Update polyline
+    // Actualizar polilínea
     this.polyline.setLatLngs(this.puntosRuta as L.LatLngExpression[]);
   }
 
@@ -379,7 +379,7 @@ export class RutasComponente implements OnInit, AfterViewInit {
 
   private extraerCoordenadasGeoJSON(geometria: any): number[][] {
     if (geometria && geometria.type === 'LineString' && Array.isArray(geometria.coordinates)) {
-      // GeoJSON [lng, lat] -> Leaflet [lat, lng]
+      // GeoJSON invierte el orden a [longitud, latitud] -> Leaflet usa [latitud, longitud]
       return geometria.coordinates.map((coord: number[]) => [coord[1], coord[0]]);
     }
     return [];
@@ -442,7 +442,7 @@ export class RutasComponente implements OnInit, AfterViewInit {
       descripcion: this.formulario.value.descripcion,
       geometria: {
         type: 'LineString',
-        // Leaflet: [lat, lng], GeoJSON: [lng, lat]
+        // Leaflet usa: [latitud, longitud], mientras que GeoJSON exige: [longitud, latitud]
         coordinates: this.puntosRuta.map(p => [p[1], p[0]])
       }
     };

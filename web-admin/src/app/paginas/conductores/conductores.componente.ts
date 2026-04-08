@@ -91,9 +91,15 @@ interface Conductor {
             <button mat-icon-button color="primary" title="Editar" (click)="abrirFormulario(c)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" title="Desactivar" (click)="confirmarDesactivar(c)">
-              <mat-icon>person_off</mat-icon>
-            </button>
+            @if (c.activo) {
+              <button mat-icon-button color="warn" title="Desactivar" (click)="alternarEstado(c)">
+                <mat-icon>person_off</mat-icon>
+              </button>
+            } @else {
+              <button mat-icon-button style="color: #2e7d32" title="Activar" (click)="alternarEstado(c)">
+                <mat-icon>restore</mat-icon>
+              </button>
+            }
           </td>
         </ng-container>
 
@@ -208,19 +214,25 @@ export class ConductoresComponente implements OnInit {
     });
   }
 
-  confirmarDesactivar(conductor: Conductor): void {
+  alternarEstado(conductor: Conductor): void {
+    const accion = conductor.activo ? 'Desactivar' : 'Activar';
+    const titulo = `${accion} conductor`;
+    const mensaje = `¿Seguro que querés ${accion.toLowerCase()} a ${conductor.nombre}?`;
+
     const ref = this.dialog.open(ConfirmarDialogo, {
-      data: {
-        titulo: 'Desactivar conductor',
-        mensaje: `¿Seguro que querés desactivar a ${conductor.nombre}?`,
-      },
+      data: { titulo, mensaje },
     });
 
     ref.afterClosed().subscribe((confirmado) => {
       if (!confirmado) return;
-      this.http.delete<any>(`${environment.apiUrl}/usuarios/${conductor.id}`).subscribe({
+      
+      const peticion = conductor.activo 
+        ? this.http.delete<any>(`${environment.apiUrl}/usuarios/${conductor.id}`)
+        : this.http.patch<any>(`${environment.apiUrl}/usuarios/${conductor.id}/activar`, {});
+
+      peticion.subscribe({
         next: () => this.cargarConductores(),
-        error: (err) => this.mostrarError(err?.error?.message ?? 'No se pudo desactivar el conductor'),
+        error: (err) => this.mostrarError(err?.error?.message ?? `No se pudo ${accion.toLowerCase()} el conductor`),
       });
     });
   }

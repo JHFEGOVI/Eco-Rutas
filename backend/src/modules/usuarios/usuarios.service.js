@@ -65,4 +65,16 @@ const desactivar = async (id) => {
   return resultado.rows[0];
 };
 
-module.exports = { obtenerTodos, obtenerPorId, crear, actualizar, desactivar };
+const activar = async (id) => {
+  await obtenerPorId(id); // lanza 404 si no existe
+
+  const resultado = await pool.query(
+    `UPDATE usuarios SET activo = true, updated_at = NOW()
+     WHERE id = $1
+     RETURNING ${CAMPOS_PUBLICOS}`,
+    [id]
+  );
+  return resultado.rows[0];
+};
+
+module.exports = { obtenerTodos, obtenerPorId, crear, actualizar, desactivar, activar };
