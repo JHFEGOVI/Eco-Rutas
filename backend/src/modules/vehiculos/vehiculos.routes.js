@@ -7,6 +7,7 @@ const {
   crearController,
   actualizarController,
   eliminarController,
+  activarController,
 } = require('./vehiculos.controller');
 
 const router = Router();
@@ -16,5 +17,6 @@ router.get('/:id',    auth,                    obtenerPorIdController);
 router.post('/',      auth, roles(['admin']),   crearController);
 router.put('/:id',    auth, roles(['admin']),   actualizarController);
 router.delete('/:id', auth, roles(['admin']),   eliminarController);
+router.patch('/:id/activar', auth, roles(['admin']), activarController);
 
 module.exports = router;

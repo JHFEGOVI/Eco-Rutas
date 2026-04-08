@@ -22,6 +22,15 @@ const obtenerPorId = async (id) => {
 };
 
 const crear = async ({ placa, marca, modelo, capacidad_kg, estado, perfil_id_externo }) => {
+  if (placa) {
+    placa = placa.toUpperCase();
+    if (!/^[A-Z]{3}-[0-9]{3}$/.test(placa)) {
+      const error = new Error('Formato de placa inválido. Use el formato AAA-111');
+      error.status = 400;
+      throw error;
+    }
+  }
+
   // Insertar en tabla local
   const resultado = await pool.query(
     `INSERT INTO vehiculos (placa, marca, modelo, capacidad_kg, estado)
@@ -81,4 +90,15 @@ const desactivar = async (id) => {
   return resultado.rows[0];
 };
 
-module.exports = { obtenerTodos, obtenerPorId, crear, actualizar, desactivar };
+const activar = async (id) => {
+  await obtenerPorId(id); // lanza 404 si no existe
+
+  const resultado = await pool.query(
+    `UPDATE vehiculos SET estado = 'operativo', updated_at = NOW()
+     WHERE id = $1 RETURNING *`,
+    [id]
+  );
+  return resultado.rows[0];
+};
+
+module.exports = { obtenerTodos, obtenerPorId, crear, actualizar, desactivar, activar };

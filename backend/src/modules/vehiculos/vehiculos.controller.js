@@ -45,10 +45,20 @@ const eliminarController = async (req, res, next) => {
   }
 };
 
+const activarController = async (req, res, next) => {
+  try {
+    const datos = await servicio.activar(req.params.id);
+    res.json({ success: true, data: datos });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   obtenerTodosController,
   obtenerPorIdController,
   crearController,
   actualizarController,
   eliminarController,
+  activarController,
 };

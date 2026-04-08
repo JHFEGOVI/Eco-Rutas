@@ -181,7 +181,7 @@ export class VehiculosComponente implements OnInit {
     this.http.get<any>(`${environment.apiUrl}/vehiculos`).subscribe({
       next: (res) => {
         console.log('respuesta:', res);
-        this.vehiculos.data = res.data;
+        this.vehiculos.data = [...res.data.filter((v: any) => v.estado !== 'inactivo')];
         this.cargando = false;
       },
       error: (err) => {
@@ -220,7 +220,7 @@ export class VehiculosComponente implements OnInit {
     const ref = this.dialog.open(ConfirmarDialogo, {
       data: {
         titulo: 'Desactivar vehículo',
-        mensaje: `¿Seguro que querés desactivar el vehículo ${vehiculo.placa}?`,
+        mensaje: `¿Desactivar el vehículo ${vehiculo.placa}? Ya no aparecerá en la lista.`,
       },
     });
 
