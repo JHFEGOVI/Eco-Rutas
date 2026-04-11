@@ -61,7 +61,7 @@ export class VehiculosComponente implements OnInit {
 
   cargarVehiculos(): void {
     this.cargando = true;
-    this.cdr.markForCheck();
+    this.cdr.markForCheck(); // Forzar detección al iniciar
     this.http.get<any>(`${environment.apiUrl}/vehiculos`).subscribe({
       next: (res) => {
         const all: Vehiculo[] = res.data || [];
@@ -78,11 +78,12 @@ export class VehiculosComponente implements OnInit {
         };
         this.vehiculos.filter = this.filtroTexto.trim().toLowerCase();
         this.cargando = false;
-        this.cdr.markForCheck();
+        this.cdr.markForCheck(); // Forzar detección al completar
       },
       error: (err) => {
         this.mostrarError(err?.error?.message ?? 'No se pudieron cargar los vehículos');
         this.cargando = false;
+        this.cdr.markForCheck();
       },
     });
   }

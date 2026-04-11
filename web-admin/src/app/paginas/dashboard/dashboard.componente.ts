@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd, ActivatedRoute } from '@angular/router';
+import { Subscription, filter, map } from 'rxjs';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,7 +26,7 @@ interface ItemNav {
     MatButtonModule,
   ],
   templateUrl: './dashboard.componente.html',
-  styleUrl:    './dashboard.componente.css',
+  styleUrls: ['./dashboard.componente.css'],
 })
 export class DashboardComponente implements OnInit, OnDestroy {
 
@@ -46,6 +46,8 @@ export class DashboardComponente implements OnInit, OnDestroy {
   constructor(
     public authServicio: AuthServicio,
     private router: Router,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -54,11 +56,14 @@ export class DashboardComponente implements OnInit, OnDestroy {
     this.actualizarSeccion();
 
     // Suscribirse a eventos de navegación para actualizar título automáticamente
-    this.routerSub = this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) {
-        this.actualizarSeccion(event.urlAfterRedirects);
-      }
-    });
+    this.routerSub = this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        map(() => this.route.firstChild?.snapshot?.url[0]?.path)
+      )
+      .subscribe((rutaHija) => {
+        this.actualizarSeccionDesdeRuta(rutaHija);
+      });
   }
 
   ngOnDestroy(): void {
@@ -67,14 +72,21 @@ export class DashboardComponente implements OnInit, OnDestroy {
     }
   }
 
-  actualizarSeccion(url?: string): void {
-    const currentUrl = url || this.router.url;
-    if (currentUrl.includes('vehiculos'))    this.seccionActual = 'Vehículos';
-    else if (currentUrl.includes('conductores')) this.seccionActual = 'Conductores';
-    else if (currentUrl.includes('rutas'))   this.seccionActual = 'Rutas';
-    else if (currentUrl.includes('asignaciones')) this.seccionActual = 'Asignaciones';
-    else if (currentUrl.includes('inicio'))    this.seccionActual = 'Inicio';
-    else this.seccionActual = 'Dashboard';
+  actualizarSeccion(): void {
+    const rutaHija = this.route.firstChild?.snapshot?.url[0]?.path;
+    this.actualizarSeccionDesdeRuta(rutaHija);
+  }
+
+  private actualizarSeccionDesdeRuta(rutaHija: string | undefined): void {
+    switch (rutaHija) {
+      case 'inicio':       this.seccionActual = 'Inicio'; break;
+      case 'vehiculos':    this.seccionActual = 'Vehículos'; break;
+      case 'conductores':  this.seccionActual = 'Conductores'; break;
+      case 'rutas':        this.seccionActual = 'Rutas'; break;
+      case 'asignaciones': this.seccionActual = 'Asignaciones'; break;
+      default:             this.seccionActual = 'Inicio'; break;
+    }
+    this.cdr.markForCheck();
   }
 
   get inicialesUsuario(): string {
