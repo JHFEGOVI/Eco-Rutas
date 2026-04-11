@@ -1,5 +1,5 @@
 const pool = require('../../config/database');
-const { crearRecorridoExterno } = require('../../services/externalApiService');
+const { crearRecorridoExterno, registrarPosicionExterna } = require('../../services/externalApiService');
 
 const iniciarRecorrido = async (conductorId) => {
   // 1. Busca las asignaciones del conductor para hoy con estado 'pendiente'
@@ -135,8 +135,57 @@ const obtenerRecorridoActivo = async (conductorId) => {
   return rs.rows[0] || null;
 };
 
+const registrarPosicion = async (recorridoId, lat, lon, conductorId) => {
+  // Verificar propiedad y estado
+  const verifyQuery = await pool.query(
+    `SELECT r.*, a.conductor_id, u.external_perfil_id 
+     FROM recorridos r
+     JOIN asignaciones a ON r.asignacion_id = a.id
+     JOIN usuarios u ON a.conductor_id = u.id
+     WHERE r.id = $1 AND a.conductor_id = $2 AND r.estado = 'en_curso'`,
+    [recorridoId, conductorId]
+  );
+  
+  if (verifyQuery.rows.length === 0) {
+    const error = new Error('Recorrido no encontrado, no autorizado o ya finalizado');
+    error.status = 404;
+    throw error;
+  }
+  const recorrido = verifyQuery.rows[0];
+
+  // Insertar en tabla posiciones
+  const insertPos = await pool.query(
+    `INSERT INTO posiciones (recorrido_id, lat, lon, timestamp_captura, sincronizado_backend, sincronizado_api_ext)
+     VALUES ($1, $2, $3, NOW(), true, false)
+     RETURNING *`,
+    [recorridoId, lat, lon]
+  );
+  const posicion = insertPos.rows[0];
+
+  // Intentar sincronizar con la API externa si existe connection
+  if (recorrido.external_id && recorrido.external_perfil_id) {
+    const exito = await registrarPosicionExterna({
+      recorridoExternalId: recorrido.external_id,
+      lat,
+      lon,
+      perfilId: recorrido.external_perfil_id
+    });
+
+    if (exito) {
+      await pool.query(
+        `UPDATE posiciones SET sincronizado_api_ext = true WHERE id = $1`,
+        [posicion.id]
+      );
+      posicion.sincronizado_api_ext = true;
+    }
+  }
+
+  return posicion;
+};
+
 module.exports = {
   iniciarRecorrido,
   finalizarRecorrido,
-  obtenerRecorridoActivo
+  obtenerRecorridoActivo,
+  registrarPosicion
 };

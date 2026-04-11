@@ -78,4 +78,27 @@ const crearRecorridoExterno = async ({ ruta_id, vehiculo_id, perfil_id }) => {
   }
 };
 
-module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno };
+/**
+ * Registra una posición GPS en un recorrido externo.
+ */
+const registrarPosicionExterna = async ({ recorridoExternalId, lat, lon, perfilId }) => {
+  try {
+    const respuesta = await fetch(`${process.env.EXTERNAL_API_URL}/api/recorridos/${recorridoExternalId}/posiciones`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lat, lon, perfil_id: perfilId }),
+    });
+
+    if (!respuesta.ok) {
+      const texto = await respuesta.text();
+      console.warn(`Advertencia al enviar posición a API externa [${respuesta.status}]: ${texto}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Error de red al enviar posición a la API externa:', err.message);
+    return false;
+  }
+};
+
+module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno, registrarPosicionExterna };
