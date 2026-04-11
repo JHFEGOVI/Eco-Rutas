@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,7 +28,9 @@ interface ItemNav {
   templateUrl: './dashboard.componente.html',
   styleUrl:    './dashboard.componente.css',
 })
-export class DashboardComponente implements OnInit {
+export class DashboardComponente implements OnInit, OnDestroy {
+
+  private routerSub!: Subscription;
 
   itemsNav: ItemNav[] = [
     { etiqueta: 'Inicio',       icono: 'dashboard',       ruta: '/dashboard/inicio'      },
@@ -49,14 +52,28 @@ export class DashboardComponente implements OnInit {
     const usuario = this.authServicio.obtenerUsuario();
     this.nombreUsuario = usuario?.nombre ?? usuario?.username ?? 'Administrador';
     this.actualizarSeccion();
+
+    // Suscribirse a eventos de navegación para actualizar título automáticamente
+    this.routerSub = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationEnd) {
+        this.actualizarSeccion(event.urlAfterRedirects);
+      }
+    });
   }
 
-  actualizarSeccion(): void {
-    const url = this.router.url;
-    if (url.includes('vehiculos'))    this.seccionActual = 'Vehículos';
-    else if (url.includes('conductores')) this.seccionActual = 'Conductores';
-    else if (url.includes('rutas'))   this.seccionActual = 'Rutas';
-    else if (url.includes('asignaciones')) this.seccionActual = 'Asignaciones';
+  ngOnDestroy(): void {
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
+    }
+  }
+
+  actualizarSeccion(url?: string): void {
+    const currentUrl = url || this.router.url;
+    if (currentUrl.includes('vehiculos'))    this.seccionActual = 'Vehículos';
+    else if (currentUrl.includes('conductores')) this.seccionActual = 'Conductores';
+    else if (currentUrl.includes('rutas'))   this.seccionActual = 'Rutas';
+    else if (currentUrl.includes('asignaciones')) this.seccionActual = 'Asignaciones';
+    else if (currentUrl.includes('inicio'))    this.seccionActual = 'Inicio';
     else this.seccionActual = 'Dashboard';
   }
 

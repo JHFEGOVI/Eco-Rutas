@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -54,12 +54,14 @@ export class VehiculosComponente implements OnInit {
     private http: HttpClient,
     private dialog: MatDialog,
     private snack: MatSnackBar,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void { this.cargarVehiculos(); }
 
   cargarVehiculos(): void {
     this.cargando = true;
+    this.cdr.markForCheck();
     this.http.get<any>(`${environment.apiUrl}/vehiculos`).subscribe({
       next: (res) => {
         const all: Vehiculo[] = res.data || [];
@@ -76,6 +78,7 @@ export class VehiculosComponente implements OnInit {
         };
         this.vehiculos.filter = this.filtroTexto.trim().toLowerCase();
         this.cargando = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.mostrarError(err?.error?.message ?? 'No se pudieron cargar los vehículos');

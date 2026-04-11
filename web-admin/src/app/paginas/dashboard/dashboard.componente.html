@@ -24,7 +24,6 @@
           [routerLink]="item.ruta"
           routerLinkActive="sb-item--activo"
           [routerLinkActiveOptions]="{ exact: false }"
-          (click)="actualizarSeccion()"
         >
           <mat-icon class="sb-item-icono">{{ item.icono }}</mat-icon>
           <span class="sb-item-texto">{{ item.etiqueta }}</span>

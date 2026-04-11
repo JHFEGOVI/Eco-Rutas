@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
@@ -51,6 +51,7 @@ export class InicioComponente implements OnInit {
     private http: HttpClient,
     private router: Router,
     private authServicio: AuthServicio,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +62,7 @@ export class InicioComponente implements OnInit {
 
   cargarResumen(): void {
     this.cargando = true;
+    this.cdr.markForCheck(); // Forzar detección al iniciar carga
 
     // Carga en paralelo vehículos, conductores, rutas y asignaciones
     Promise.all([
@@ -86,6 +88,7 @@ export class InicioComponente implements OnInit {
       };
 
       this.cargando = false;
+      this.cdr.markForCheck(); // Forzar detección al completar carga
     });
   }
 
