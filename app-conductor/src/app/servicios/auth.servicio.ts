@@ -10,15 +10,15 @@ import { environment } from '../../environments/environment';
 })
 export class AuthServicio {
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) { }
 
   login(username: string, password: string): Observable<any> {
     return new Observable(observer => {
       this.http.post<any>(`${environment.apiUrl}/auth/login`, { username, password }).subscribe({
         next: async (res) => {
-          if (res.token) {
-            await Preferences.set({ key: 'ecorrutas_token', value: res.token });
-            await Preferences.set({ key: 'ecorrutas_usuario', value: JSON.stringify(res.usuario) });
+          if (res.data?.token) {
+            await Preferences.set({ key: 'ecorrutas_token', value: res.data.token });
+            await Preferences.set({ key: 'ecorrutas_usuario', value: JSON.stringify(res.data.user) });
           }
           observer.next(res);
           observer.complete();
