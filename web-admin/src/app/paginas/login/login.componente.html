@@ -1,0 +1,94 @@
+<div class="login-page">
+  <div class="login-panel">
+    <div class="login-content">
+      <!-- Logo centrado arriba -->
+      <div class="logo-section">
+        <img src="LogoNegro.png" alt="Eco-Rutas" class="logo" />
+      </div>
+
+      <!-- Título -->
+      <h1 class="title">Iniciar sesión</h1>
+
+      <!-- Formulario -->
+      <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()" class="login-form">
+        <!-- Campo de usuario -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Usuario o correo</mat-label>
+          <input
+            matInput
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            placeholder="Ingresa tu usuario"
+          />
+          <mat-icon matSuffix class="input-icon">person</mat-icon>
+        </mat-form-field>
+
+        <!-- Campo de contraseña -->
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            [type]="mostrarPassword ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Ingresa tu contraseña"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="mostrarPassword = !mostrarPassword"
+            class="password-toggle"
+          >
+            <mat-icon>{{ mostrarPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <!-- Enlace de contraseña olvidada -->
+        <div class="forgot-password">
+          <a href="#" class="link">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <!-- Mensaje de error -->
+        @if (error) {
+          <p class="error-message">{{ error }}</p>
+        }
+
+        <!-- Botón de inicio de sesión -->
+        <button
+          mat-flat-button
+          type="submit"
+          class="login-button"
+          [disabled]="cargando"
+        >
+          @if (cargando) {
+            <mat-spinner diameter="18" class="spinner" />
+          } @else {
+            Iniciar sesión
+          }
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="divider">
+        <span class="divider-line"></span>
+        <span class="divider-text">o inicia con</span>
+        <span class="divider-line"></span>
+      </div>
+
+      <!-- Botón Google -->
+      <div class="social-buttons">
+        <button mat-stroked-button type="button" class="social-button google-button">
+          <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="social-icon" />
+          <span>Continuar con Google</span>
+        </button>
+      </div>
+
+      <!-- Crear cuenta -->
+      <p class="signup-text">
+        ¿Nuevo en Eco-Rutas? <a href="#" class="link signup-link">Crear cuenta</a>
+      </p>
+    </div>
+  </div>
+</div>
