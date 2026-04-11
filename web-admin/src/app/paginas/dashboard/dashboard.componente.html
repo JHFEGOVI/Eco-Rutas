@@ -1,0 +1,81 @@
+<div class="contenedor-app">
+
+  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <aside class="sidebar">
+
+    <!-- Logo -->
+    <div class="sb-cabecera">
+      <div class="sb-logo-circulo">
+        <img src="assets/logo.png" alt="EcoRutas" class="sb-logo-img" />
+      </div>
+      <div class="sb-marca">
+        <span class="sb-nombre">EcoRutas</span>
+        <span class="sb-ciudad">Buenaventura</span>
+      </div>
+    </div>
+
+    <!-- Navegación -->
+    <nav class="sb-nav">
+      <span class="sb-seccion-label">Principal</span>
+
+      @for (item of itemsNav; track item.ruta) {
+        <a
+          class="sb-item"
+          [routerLink]="item.ruta"
+          routerLinkActive="sb-item--activo"
+          [routerLinkActiveOptions]="{ exact: false }"
+          (click)="actualizarSeccion()"
+        >
+          <mat-icon class="sb-item-icono">{{ item.icono }}</mat-icon>
+          <span class="sb-item-texto">{{ item.etiqueta }}</span>
+          @if (item.badge) {
+            <span class="sb-badge" [class.sb-badge--alerta]="item.badgeAlerta">
+              {{ item.badge }}
+            </span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Pie del sidebar -->
+    <div class="sb-pie">
+      <div class="sb-usuario">
+        <div class="sb-avatar">{{ inicialesUsuario }}</div>
+        <div class="sb-usuario-info">
+          <span class="sb-usuario-nombre">{{ nombreUsuario }}</span>
+          <span class="sb-usuario-rol">Super admin</span>
+        </div>
+      </div>
+      <button class="sb-logout" (click)="authServicio.cerrarSesion()">
+        <mat-icon>logout</mat-icon>
+        Cerrar sesión
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ══════════════ CONTENIDO PRINCIPAL ══════════════ -->
+  <div class="contenido-principal">
+
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-izquierda">
+        <span class="topbar-breadcrumb">
+          Panel de administración ·
+          <span class="topbar-breadcrumb-activo">{{ seccionActual }}</span>
+        </span>
+        <span class="topbar-titulo">{{ seccionActual }}</span>
+      </div>
+      <div class="topbar-derecha">
+        <div class="topbar-fecha">{{ fechaHoy }}</div>
+        <div class="topbar-avatar">{{ inicialesUsuario }}</div>
+      </div>
+    </header>
+
+    <!-- Zona de contenido -->
+    <main class="zona-contenido">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+</div>

@@ -23,7 +23,9 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "inlineStyleLanguage": "scss",
+
+            "inlineStyleLanguage": "css",
+
             "assets": [
               {
                 "glob": "**/*",
@@ -33,7 +35,8 @@
             ],
             "styles": [
               "node_modules/leaflet/dist/leaflet.css",
-              "src/styles.scss"
+              "src/styles.scss",
+              "src/app/paginas/login/login.componente.css"
             ]
           },
           "configurations": {
@@ -58,7 +61,7 @@
               "sourceMap": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "development"
         },
         "serve": {
           "builder": "@angular/build:dev-server",

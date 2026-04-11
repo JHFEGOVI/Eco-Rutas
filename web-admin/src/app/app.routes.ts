@@ -1,45 +1,28 @@
 import { Routes } from '@angular/router';
+import { LoginComponente } from './paginas/login/login.componente';
+import { DashboardComponente } from './paginas/dashboard/dashboard.componente';
+import { InicioComponente } from './paginas/dashboard/inicio.componente';
+import { VehiculosComponente } from './paginas/vehiculos/vehiculos.componente';
+import { ConductoresComponente } from './paginas/conductores/conductores.componente';
+import { RutasComponente } from './paginas/rutas/rutas.componente';
+import { AsignacionesComponente } from './paginas/asignaciones/asignaciones.componente';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
-  {
-    path: 'login',
-    loadComponent: () =>
-      import('./paginas/login/login.componente').then((m) => m.LoginComponente),
-  },
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login', component: LoginComponente },
   {
     path: 'dashboard',
-    loadComponent: () =>
-      import('./paginas/dashboard/dashboard.componente').then((m) => m.DashboardComponente),
+    component: DashboardComponente,
     canActivate: [authGuard],
     children: [
-      {
-        path: 'vehiculos',
-        loadComponent: () =>
-          import('./paginas/vehiculos/vehiculos.componente').then((m) => m.VehiculosComponente),
-        canActivate: [authGuard],
-      },
-      {
-        path: 'conductores',
-        loadComponent: () =>
-          import('./paginas/conductores/conductores.componente').then((m) => m.ConductoresComponente),
-        canActivate: [authGuard],
-      },
-      {
-        path: 'rutas',
-        loadComponent: () =>
-          import('./paginas/rutas/rutas.componente').then((m) => m.RutasComponente),
-        canActivate: [authGuard],
-      },
-      {
-        path: 'asignaciones',
-        loadComponent: () =>
-          import('./paginas/asignaciones/asignaciones.componente').then((m) => m.AsignacionesComponente),
-        canActivate: [authGuard],
-      },
-      { path: '', redirectTo: 'vehiculos', pathMatch: 'full' },
+      { path: '',       redirectTo: 'inicio', pathMatch: 'full' },
+      { path: 'inicio', component: InicioComponente },
+      { path: 'vehiculos',    component: VehiculosComponente },
+      { path: 'conductores',  component: ConductoresComponente },
+      { path: 'rutas',        component: RutasComponente },
+      { path: 'asignaciones', component: AsignacionesComponente },
     ],
   },
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
   { path: '**', redirectTo: 'login' },
 ];

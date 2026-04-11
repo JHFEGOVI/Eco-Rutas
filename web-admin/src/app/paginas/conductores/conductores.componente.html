@@ -1,0 +1,117 @@
+<!-- ── STATS ── -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Total</span>
+      <div class="stat-icono azul"><mat-icon>people</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalConductores }}</span>
+    <span class="stat-tag azul">Registrados</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Activos</span>
+      <div class="stat-icono verde"><mat-icon>check_circle</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalActivos }}</span>
+    <span class="stat-tag verde">En servicio</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Inactivos</span>
+      <div class="stat-icono gris"><mat-icon>person_off</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalInactivos }}</span>
+    <span class="stat-tag gris">Sin asignar</span>
+  </div>
+</div>
+
+<!-- ── CABECERA ── -->
+<div class="cabecera">
+  <div>
+    <h2 class="titulo-seccion">Conductores</h2>
+    <span class="subtitulo-seccion">Gestión de personal operativo</span>
+  </div>
+  <button class="btn-nuevo" (click)="abrirFormulario()">
+    <mat-icon>person_add</mat-icon>
+    Nuevo conductor
+  </button>
+</div>
+
+<!-- ── SPINNER ── -->
+@if (cargando) {
+  <div class="centro"><mat-spinner diameter="48"></mat-spinner></div>
+}
+
+<!-- ── TABLA ── -->
+<div class="tabla-panel" [style.display]="cargando ? 'none' : 'block'">
+  <table mat-table [dataSource]="conductores" class="tabla">
+
+    <ng-container matColumnDef="nombre">
+      <th mat-header-cell *matHeaderCellDef>Nombre</th>
+      <td mat-cell *matCellDef="let c">
+        <div class="conductor-fila">
+          <div class="conductor-avatar">{{ inicialesConductor(c.nombre) }}</div>
+          <span>{{ c.nombre }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="documento">
+      <th mat-header-cell *matHeaderCellDef>Documento</th>
+      <td mat-cell *matCellDef="let c">{{ c.documento }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Correo</th>
+      <td mat-cell *matCellDef="let c">{{ c.email || '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="usuario">
+      <th mat-header-cell *matHeaderCellDef>Usuario</th>
+      <td mat-cell *matCellDef="let c">
+        <span class="placa">{{ c.username }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let c">
+        <span class="chip" [ngClass]="c.activo ? 'chip--activo' : 'chip--inactivo'">
+          <span class="chip-dot"></span>
+          {{ c.activo ? 'Activo' : 'Inactivo' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let c">
+        <div class="acciones">
+          <button class="btn-accion btn-editar" title="Editar" (click)="abrirFormulario(c)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          @if (c.activo) {
+            <button class="btn-accion btn-eliminar" title="Desactivar" (click)="alternarEstado(c)">
+              <mat-icon>person_off</mat-icon>
+            </button>
+          } @else {
+            <button class="btn-accion btn-activar" title="Activar" (click)="alternarEstado(c)">
+              <mat-icon>restore</mat-icon>
+            </button>
+          }
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
+  </table>
+
+  @if (!cargando && conductores.data.length === 0) {
+    <div class="vacio">
+      <mat-icon>people</mat-icon>
+      <p>No hay conductores registrados</p>
+    </div>
+  }
+</div>

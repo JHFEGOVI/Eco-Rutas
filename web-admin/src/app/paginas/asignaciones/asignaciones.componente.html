@@ -1,0 +1,118 @@
+<!-- ── STATS ── -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Total</span>
+      <div class="stat-icono azul"><mat-icon>assignment</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalAsignaciones }}</span>
+    <span class="stat-tag azul">Registradas</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Pendientes</span>
+      <div class="stat-icono naranja"><mat-icon>schedule</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalPendientes }}</span>
+    <span class="stat-tag naranja">Por iniciar</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">En curso</span>
+      <div class="stat-icono amarillo"><mat-icon>directions_run</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalEnCurso }}</span>
+    <span class="stat-tag amarillo">Activas</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Completadas</span>
+      <div class="stat-icono verde"><mat-icon>task_alt</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalCompletadas }}</span>
+    <span class="stat-tag verde">Finalizadas</span>
+  </div>
+</div>
+
+<!-- ── CABECERA ── -->
+<div class="cabecera">
+  <div>
+    <h2 class="titulo-seccion">Asignaciones</h2>
+    <span class="subtitulo-seccion">Control de rutas por conductor</span>
+  </div>
+  <button class="btn-nuevo" (click)="abrirModalNueva()">
+    <mat-icon>add</mat-icon>
+    Nueva asignación
+  </button>
+</div>
+
+<!-- ── SPINNER ── -->
+@if (cargando) {
+  <div class="centro"><mat-spinner diameter="48"></mat-spinner></div>
+}
+
+<!-- ── TABLA ── -->
+<div class="tabla-panel" [style.display]="cargando ? 'none' : 'block'">
+  <table mat-table [dataSource]="asignaciones" class="tabla">
+
+    <ng-container matColumnDef="conductor">
+      <th mat-header-cell *matHeaderCellDef>Conductor</th>
+      <td mat-cell *matCellDef="let a">
+        <div class="conductor-fila">
+          <div class="conductor-avatar">
+            {{ a.conductor_nombre?.slice(0,2)?.toUpperCase() }}
+          </div>
+          {{ a.conductor_nombre }}
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="ruta">
+      <th mat-header-cell *matHeaderCellDef>Ruta</th>
+      <td mat-cell *matCellDef="let a">
+        <div class="ruta-fila">
+          <mat-icon class="ruta-icono">map</mat-icon>
+          {{ a.ruta_nombre }}
+        </div>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Fecha</th>
+      <td mat-cell *matCellDef="let a">{{ formatearFecha(a.fecha) }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let a">
+        <span class="chip" [ngClass]="'chip--' + a.estado">
+          <span class="chip-dot"></span>
+          {{ etiquetaEstado(a.estado) }}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let a">
+        <button class="btn-estado" (click)="cambiarEstado(a)">
+          <mat-icon>sync</mat-icon>
+          Cambiar estado
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
+  </table>
+
+  @if (!cargando && asignaciones.length === 0) {
+    <div class="vacio">
+      <mat-icon>assignment</mat-icon>
+      <p>No hay asignaciones registradas aún</p>
+      <button class="btn-nuevo" (click)="abrirModalNueva()">
+        <mat-icon>add</mat-icon> Crear primera asignación
+      </button>
+    </div>
+  }
+</div>

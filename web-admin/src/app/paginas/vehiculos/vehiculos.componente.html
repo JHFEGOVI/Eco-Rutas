@@ -1,0 +1,130 @@
+<!-- ── STATS ── -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Total</span>
+      <div class="stat-icono verde"><mat-icon>local_shipping</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalVehiculos }}</span>
+    <span class="stat-tag verde">Flota registrada</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Operativos</span>
+      <div class="stat-icono verde"><mat-icon>check_circle</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalOperativos }}</span>
+    <span class="stat-tag verde">En ruta</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Averiados</span>
+      <div class="stat-icono naranja"><mat-icon>warning</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalAveriados }}</span>
+    <span class="stat-tag naranja">Mantenimiento</span>
+  </div>
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Inactivos</span>
+      <div class="stat-icono gris"><mat-icon>do_not_disturb</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalInactivos }}</span>
+    <span class="stat-tag gris">Sin asignar</span>
+  </div>
+</div>
+
+<!-- ── CABECERA ── -->
+<div class="cabecera">
+  <div class="cabecera-izquierda">
+    <h2 class="titulo-seccion">Vehículos</h2>
+    <span class="subtitulo-seccion">Gestión de flota de recolección</span>
+  </div>
+  <div class="cabecera-acciones">
+    <div class="buscador">
+      <mat-icon class="buscador-icono">search</mat-icon>
+      <input
+        class="buscador-input"
+        placeholder="Buscar placa, marca, modelo..."
+        (input)="aplicarFiltro($any($event.target).value)"
+      />
+    </div>
+    <label class="toggle-label">
+      <input type="checkbox" (change)="toggleMostrarInactivos()" />
+      <span>Ver inactivos</span>
+    </label>
+    <button class="btn-nuevo" (click)="abrirFormulario()">
+      <mat-icon>add</mat-icon>
+      Nuevo vehículo
+    </button>
+  </div>
+</div>
+
+<!-- ── SPINNER ── -->
+@if (cargando) {
+  <div class="centro">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
+}
+
+<!-- ── TABLA ── -->
+<div class="tabla-panel" [style.display]="cargando ? 'none' : 'block'">
+  <table mat-table [dataSource]="vehiculos" class="tabla">
+
+    <ng-container matColumnDef="placa">
+      <th mat-header-cell *matHeaderCellDef>Placa</th>
+      <td mat-cell *matCellDef="let v">
+        <span class="placa">{{ v.placa }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="marca">
+      <th mat-header-cell *matHeaderCellDef>Marca</th>
+      <td mat-cell *matCellDef="let v">{{ v.marca }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="modelo">
+      <th mat-header-cell *matHeaderCellDef>Modelo</th>
+      <td mat-cell *matCellDef="let v">{{ v.modelo }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="capacidad_kg">
+      <th mat-header-cell *matHeaderCellDef>Capacidad (kg)</th>
+      <td mat-cell *matCellDef="let v">{{ v.capacidad_kg ?? '—' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="estado">
+      <th mat-header-cell *matHeaderCellDef>Estado</th>
+      <td mat-cell *matCellDef="let v">
+        <span class="chip" [ngClass]="'chip--' + v.estado">
+          <span class="chip-dot"></span>
+          {{ etiquetaEstado(v.estado) }}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let v">
+        <div class="acciones">
+          <button class="btn-accion btn-editar" title="Editar" (click)="abrirFormulario(v)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button class="btn-accion btn-eliminar" title="Desactivar" (click)="confirmarDesactivar(v)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
+  </table>
+
+  @if (!cargando && vehiculos.data.length === 0) {
+    <div class="vacio">
+      <mat-icon>local_shipping</mat-icon>
+      <p>No hay vehículos registrados</p>
+    </div>
+  }
+</div>
