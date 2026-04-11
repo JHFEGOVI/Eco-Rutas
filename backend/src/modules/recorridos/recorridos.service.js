@@ -1,0 +1,142 @@
+const pool = require('../../config/database');
+const { crearRecorridoExterno } = require('../../services/externalApiService');
+
+const iniciarRecorrido = async (conductorId) => {
+  // 1. Busca las asignaciones del conductor para hoy con estado 'pendiente'
+  const asignacionQuery = await pool.query(
+    `SELECT * FROM asignaciones 
+     WHERE conductor_id = $1 
+       AND fecha = CURRENT_DATE 
+       AND estado = 'pendiente' 
+     ORDER BY created_at ASC 
+     LIMIT 1`,
+    [conductorId]
+  );
+  
+  if (asignacionQuery.rows.length === 0) {
+    const error = new Error('No tienes asignaciones pendientes para hoy');
+    error.status = 400;
+    throw error;
+  }
+  const asignacion = asignacionQuery.rows[0];
+
+  // 2. Busca el primer vehículo con estado 'operativo' disponible (que no tenga un recorrido en curso)
+  const vehiculoQuery = await pool.query(
+    `SELECT v.* FROM vehiculos v
+     LEFT JOIN recorridos r ON v.id = r.vehiculo_id AND r.estado = 'en_curso'
+     WHERE v.estado = 'operativo' AND r.id IS NULL
+     LIMIT 1`
+  );
+
+  if (vehiculoQuery.rows.length === 0) {
+    const error = new Error('No hay vehículos disponibles en este momento');
+    error.status = 400;
+    throw error;
+  }
+  const vehiculo = vehiculoQuery.rows[0];
+
+  // 3. Crea el registro del recorrido
+  const insertRecorrido = await pool.query(
+    `INSERT INTO recorridos (asignacion_id, vehiculo_id, timestamp_inicio, estado)
+     VALUES ($1, $2, NOW(), 'en_curso')
+     RETURNING *`,
+    [asignacion.id, vehiculo.id]
+  );
+  const recorrido = insertRecorrido.rows[0];
+
+  // 4. Actualiza el estado de la asignación a 'en_curso'
+  await pool.query(
+    `UPDATE asignaciones SET estado = 'en_curso', updated_at = NOW() WHERE id = $1`,
+    [asignacion.id]
+  );
+
+  // 5. Intenta sincronizar con la API externa (si falla, no bloquea el flujo principal)
+  try {
+    const usuarioQuery = await pool.query('SELECT external_perfil_id FROM usuarios WHERE id = $1', [conductorId]);
+    const perfilIdExterno = usuarioQuery.rows[0]?.external_perfil_id;
+    
+    if (perfilIdExterno) {
+      const idExterno = await crearRecorridoExterno({
+        ruta_id: asignacion.ruta_id, // Asumiendo que ruta_id local está mapeado igual o manejan uuid
+        vehiculo_id: vehiculo.external_id || vehiculo.id,
+        perfil_id: perfilIdExterno
+      });
+
+      if (idExterno) {
+        await pool.query(
+          `UPDATE recorridos SET external_id = $1 WHERE id = $2`,
+          [idExterno, recorrido.id]
+        );
+        recorrido.external_id = idExterno;
+      }
+    }
+  } catch (err) {
+    console.error('Error al sincronizar recorrido con API externa:', err.message);
+  }
+
+  // 6. Retorna con joins básicos
+  const resultado = await pool.query(
+    `SELECT r.*, a.ruta_id, v.placa AS vehiculo_placa, v.marca AS vehiculo_marca 
+     FROM recorridos r
+     JOIN asignaciones a ON r.asignacion_id = a.id
+     JOIN vehiculos v ON r.vehiculo_id = v.id
+     WHERE r.id = $1`,
+    [recorrido.id]
+  );
+
+  return resultado.rows[0];
+};
+
+const finalizarRecorrido = async (recorridoId, conductorId) => {
+  // Verificar propiedad
+  const verifyQuery = await pool.query(
+    `SELECT r.*, a.conductor_id 
+     FROM recorridos r
+     JOIN asignaciones a ON r.asignacion_id = a.id
+     WHERE r.id = $1 AND a.conductor_id = $2`,
+    [recorridoId, conductorId]
+  );
+  
+  if (verifyQuery.rows.length === 0) {
+    const error = new Error('Recorrido no encontrado o no autorizado');
+    error.status = 404;
+    throw error;
+  }
+  const recorrido = verifyQuery.rows[0];
+
+  // Actualizar recorrido
+  const updateRecorrido = await pool.query(
+    `UPDATE recorridos 
+     SET timestamp_fin = NOW(), estado = 'completado', updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [recorridoId]
+  );
+
+  // Actualizar la asignación a completada
+  await pool.query(
+    `UPDATE asignaciones SET estado = 'completada', updated_at = NOW() WHERE id = $1`,
+    [recorrido.asignacion_id]
+  );
+
+  return updateRecorrido.rows[0];
+};
+
+const obtenerRecorridoActivo = async (conductorId) => {
+  const rs = await pool.query(
+    `SELECT r.*, a.ruta_id, a.conductor_id, v.placa, v.marca
+     FROM recorridos r
+     JOIN asignaciones a ON r.asignacion_id = a.id
+     JOIN vehiculos v ON r.vehiculo_id = v.id
+     WHERE a.conductor_id = $1 AND r.estado = 'en_curso'
+     LIMIT 1`,
+    [conductorId]
+  );
+  return rs.rows[0] || null;
+};
+
+module.exports = {
+  iniciarRecorrido,
+  finalizarRecorrido,
+  obtenerRecorridoActivo
+};
