@@ -52,4 +52,30 @@ const crearRutaExterna = async ({ nombre_ruta, perfil_id, shape }) => {
   }
 };
 
-module.exports = { crearVehiculoExterno, crearRutaExterna };
+/**
+ * Crea o inicia un recorrido en la API externa del profesor.
+ * @param {{ ruta_id, vehiculo_id, perfil_id }} recorrido
+ * @returns {string|null} UUID del recorrido externo, o null si falla
+ */
+const crearRecorridoExterno = async ({ ruta_id, vehiculo_id, perfil_id }) => {
+  try {
+    const respuesta = await fetch(`${process.env.EXTERNAL_API_URL}/api/recorridos/iniciar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ruta_id, vehiculo_id, perfil_id }),
+    });
+
+    if (!respuesta.ok) {
+      const texto = await respuesta.text();
+      throw new Error(`Error en la API externa [${respuesta.status}]: ${texto}`);
+    }
+
+    const datos = await respuesta.json();
+    return datos.id || datos.uuid || datos.data?.id || null;
+  } catch (err) {
+    console.error('Error al registrar recorrido en la API externa:', err.message);
+    return null;
+  }
+};
+
+module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno };
