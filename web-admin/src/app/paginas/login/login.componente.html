@@ -1,0 +1,128 @@
+<div class="pagina">
+
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <!-- partículas decorativas -->
+    <div class="particula p1"></div>
+    <div class="particula p2"></div>
+    <div class="particula p3"></div>
+    <div class="particula p4"></div>
+    <div class="estrella">⭐</div>
+
+    <!-- TEXTO IZQUIERDA -->
+    <div class="hero-texto">
+      <div class="hero-titulo">
+        <span>Sistema Inteligente de Gestión de Residuos</span>
+      </div>
+      <p class="hero-desc">
+        Gestiona la recolección de residuos de manera inteligente.
+        Optimiza rutas, monitorea camiones en tiempo real y contribuye
+        a un Buenaventura más limpio. Todo en un solo lugar.
+      </p>
+    </div>
+
+    <!-- TARJETA LOGIN -->
+    <div class="card">
+
+      <!-- dots estilo mac -->
+      <div class="card-dots">
+        <span class="dot rojo"></span>
+        <span class="dot amarillo"></span>
+        <span class="dot verde-dot"></span>
+      </div>
+
+      <!-- logo centrado -->
+      <div class="card-logo">
+        <div class="logo-circulo">
+          <img src="assets/logo.png" alt="EcoRutas" class="logo-img" />
+        </div>
+        <span class="logo-ciudad">Panel Admin</span>
+      </div>
+
+      <!-- formulario -->
+      <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()" autocomplete="off">
+
+        <div class="campo-grupo">
+          <label class="campo-label">Usuario</label>
+          <div class="campo-wrap">
+            <mat-icon class="campo-icono">person</mat-icon>
+            <input
+              class="campo-input"
+              type="text"
+              formControlName="username"
+              placeholder="Ingresa tu usuario"
+              autocomplete="username"
+              inputmode="text"
+            />
+          </div>
+          <span class="campo-error" *ngIf="formulario.get('username')?.hasError('required') && formulario.get('username')?.touched">
+            <mat-icon class="error-icono">error_outline</mat-icon>
+            El usuario es requerido
+          </span>
+          <span class="campo-error" *ngIf="formulario.get('username')?.hasError('server')">
+            <mat-icon class="error-icono">error_outline</mat-icon>
+            {{ formulario.get('username')?.getError('server') }}
+          </span>
+        </div>
+
+        <div class="campo-grupo">
+          <label class="campo-label">Contraseña</label>
+          <div class="campo-wrap">
+            <mat-icon class="campo-icono">lock</mat-icon>
+            <input
+              class="campo-input"
+              type="password"
+              formControlName="password"
+              placeholder="Ingresa tu contraseña"
+              autocomplete="current-password"
+            />
+          </div>
+          <span class="campo-error" *ngIf="formulario.get('password')?.hasError('required') && formulario.get('password')?.touched">
+            <mat-icon class="error-icono">error_outline</mat-icon>
+            La contraseña es requerida
+          </span>
+          <span class="campo-error" *ngIf="formulario.get('password')?.hasError('server')">
+            <mat-icon class="error-icono">error_outline</mat-icon>
+            {{ formulario.get('password')?.getError('server') }}
+          </span>
+        </div>
+
+        <div class="olvidaste">
+          <a href="#" class="olvidaste-link">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <div class="error-general" *ngIf="error">
+          <mat-icon>error</mat-icon>
+          <span>{{ error }}</span>
+        </div>
+
+        <button
+          type="submit"
+          class="boton"
+          [class.cargando]="cargando"
+          [disabled]="cargando"
+        >
+          <ng-container *ngIf="cargando">
+            <mat-spinner diameter="18" class="boton-spinner"></mat-spinner>
+            Verificando...
+          </ng-container>
+          <ng-container *ngIf="!cargando">
+            <mat-icon>login</mat-icon>
+            Iniciar sesión
+          </ng-container>
+        </button>
+
+      </form>
+
+      <!-- badge: mantenido debajo del formulario -->
+      <div class="badge-seguro">
+        <mat-icon class="badge-icono">verified_user</mat-icon>
+        Conexión cifrada · EcoRutas v1.0
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -6,11 +6,21 @@
 // custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+/* Paleta de marca: verde principal y variantes */
+:root {
+  /* Tonos más cálidos y suaves */
+  --brand-green: #3fa34d;       /* verde cálido principal */
+  --brand-green-dark: #2e7d36;  /* variante oscura */
+  --brand-green-light: #e6f9ea; /* fondo/iluminación suave */
+  --brand-gray: #f5f5f5;
+  --brand-muted: #6b6b6b;
+}
+
 html {
   height: 100%;
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
+      primary: mat.$green-palette,
       tertiary: mat.$blue-palette,
     ),
     typography: Roboto,
@@ -27,7 +37,7 @@ body {
   // Set a default background, font and text colors for the application using
   // Angular Material's system-level CSS variables. Learn more about these
   // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
+  background: linear-gradient(180deg, #f7fbf7 0%, #ffffff 100%);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
 
@@ -35,4 +45,18 @@ body {
   margin: 0;
   height: 100%;
 }
+/* Helpers globales de UI */
+.btn-brand {
+  background-color: var(--brand-green);
+  color: white;
+}
+
+.text-brand {
+  color: var(--brand-green);
+}
+
+/* Reglas para chips/estados (puedes ajustar desde variables) */
+.chip--operativo { background-color: #e8f5e9; color: var(--brand-green-dark); }
+.chip--averiado { background-color: #fff8e1; color: #f57f17; }
+.chip--inactivo { background-color: var(--brand-gray); color: var(--brand-muted); }
 /* You can add global styles to this file, and also import other style files */

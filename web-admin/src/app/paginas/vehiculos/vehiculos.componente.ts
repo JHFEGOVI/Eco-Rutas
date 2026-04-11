@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { NgClass } from '@angular/common';
+import { NgClass, NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
@@ -8,6 +9,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { environment } from '../../../environments/environment';
 import { VehiculoFormDialogo } from './vehiculo-form.dialogo';
 import { ConfirmarDialogo } from '../../compartido/confirmar.dialogo';
@@ -25,7 +29,12 @@ interface Vehiculo {
   selector: 'app-vehiculos',
   standalone: true,
   imports: [
+    NgIf,
     NgClass,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSlideToggleModule,
     MatTableModule,
     MatDialogModule,
     MatSnackBarModule,
@@ -36,17 +45,21 @@ interface Vehiculo {
   ],
   template: `
     <div class="cabecera">
-      <h2 class="titulo-seccion">Vehículos</h2>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <h2 class="titulo-seccion">Vehículos</h2>
+        <mat-form-field appearance="outline" style="width:320px; margin-left:12px;">
+          <mat-label>Buscar (placa, marca, modelo)</mat-label>
+          <input matInput (input)="aplicarFiltro($any($event.target).value)" placeholder="Ej: ABC123" />
+        </mat-form-field>
+        <mat-slide-toggle (change)="toggleMostrarInactivos()" color="primary">Mostrar inactivos</mat-slide-toggle>
+      </div>
       <button mat-flat-button color="primary" (click)="abrirFormulario()">
         <mat-icon>add</mat-icon> Nuevo vehículo
       </button>
     </div>
-
-    @if (cargando) {
-      <div class="centro">
-        <mat-spinner diameter="48"></mat-spinner>
-      </div>
-    }
+    <div *ngIf="cargando" class="centro">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
 
     <div class="tabla-contenedor mat-elevation-z2" [style.display]="cargando ? 'none' : ''">
       <table mat-table [dataSource]="vehiculos">
@@ -109,12 +122,19 @@ interface Vehiculo {
       align-items: center;
       justify-content: space-between;
       margin-bottom: 24px;
+      background: white;
+      padding: 14px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
+
+    .cabecera > div { display:flex; align-items:center; gap:12px; }
 
     .titulo-seccion {
       margin: 0;
-      font-size: 1.5rem;
-      font-weight: 600;
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--brand-green-dark);
     }
 
     .centro {
@@ -126,28 +146,45 @@ interface Vehiculo {
     .tabla-contenedor {
       border-radius: 8px;
       overflow: hidden;
+      background: white;
+      padding: 8px;
     }
 
     table {
       width: 100%;
+      border-collapse: collapse;
     }
 
     th.mat-mdc-header-cell {
       font-weight: 600;
-      color: #444;
+      color: var(--brand-green-dark);
+      background: var(--brand-green-light);
+      background-color: var(--brand-green-light);
+      opacity: 0.95;
+    }
+
+    tr.mat-row:hover { background: rgba(30,140,52,0.04); }
+
+    /* Estilo botones primary dentro del componente */
+    button[mat-flat-button][color="primary"], button.mat-flat-button.mat-primary {
+      background-color: var(--brand-green);
+      color: #fff;
     }
 
     /* Chips de estado */
     .chip {
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .chip--operativo {
       background-color: #e8f5e9;
-      color: #2e7d32;
+      color: var(--brand-green-dark);
     }
 
     .chip--averiado {
@@ -156,15 +193,21 @@ interface Vehiculo {
     }
 
     .chip--inactivo {
-      background-color: #f5f5f5;
-      color: #757575;
+      background-color: var(--brand-gray);
+      color: var(--brand-muted);
     }
+
+    /* Mat-form-field tweaks */
+    .mat-form-field-appearance-outline .mat-form-field-outline { border-color: rgba(0,0,0,0.06); }
+    input[matInput] { padding: 10px 12px; }
   `],
 })
 export class VehiculosComponente implements OnInit {
   columnas = ['placa', 'marca', 'modelo', 'capacidad_kg', 'estado', 'acciones'];
   vehiculos = new MatTableDataSource<Vehiculo>([]);
   cargando = false;
+  filtroTexto = '';
+  mostrarInactivos = false;
 
   constructor(
     private http: HttpClient,
@@ -181,7 +224,21 @@ export class VehiculosComponente implements OnInit {
     this.http.get<any>(`${environment.apiUrl}/vehiculos`).subscribe({
       next: (res) => {
         console.log('respuesta:', res);
-        this.vehiculos.data = [...res.data.filter((v: any) => v.estado !== 'inactivo')];
+        const all: Vehiculo[] = res.data || [];
+        // aplicar filtro de mostrarInactivos
+        this.vehiculos.data = this.mostrarInactivos ? [...all] : [...all.filter((v: any) => v.estado !== 'inactivo')];
+
+        // configurar predicate para filtrar por placa/marca/modelo
+        this.vehiculos.filterPredicate = (data: Vehiculo, filter: string) => {
+          const text = filter.trim().toLowerCase();
+          if (!text) return true;
+          return (data.placa || '').toLowerCase().includes(text)
+            || (data.marca || '').toLowerCase().includes(text)
+            || (data.modelo || '').toLowerCase().includes(text);
+        };
+
+        // reaplicar filtro actual
+        this.vehiculos.filter = this.filtroTexto.trim().toLowerCase();
         this.cargando = false;
       },
       error: (err) => {
@@ -189,6 +246,16 @@ export class VehiculosComponente implements OnInit {
         this.cargando = false;
       },
     });
+  }
+
+  aplicarFiltro(text?: string): void {
+    this.filtroTexto = (text ?? this.filtroTexto) as string;
+    this.vehiculos.filter = this.filtroTexto.trim().toLowerCase();
+  }
+
+  toggleMostrarInactivos(): void {
+    this.mostrarInactivos = !this.mostrarInactivos;
+    this.cargarVehiculos();
   }
 
   abrirFormulario(vehiculo?: Vehiculo): void {

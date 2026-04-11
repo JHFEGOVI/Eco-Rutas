@@ -83,10 +83,11 @@ interface ItemNav {
 
     /* ── Barra lateral ── */
     .barra-lateral {
-      width: 240px;
-      background-color: #1a2332;
+      width: 260px;
+      background: linear-gradient(180deg, var(--brand-green) 0%, var(--brand-green-dark) 100%);
       display: flex;
       flex-direction: column;
+      color: white;
     }
 
     .barra-lateral__cabecera {
@@ -97,25 +98,30 @@ interface ItemNav {
     .barra-lateral__titulo {
       color: #ffffff;
       font-size: 1.4rem;
-      font-weight: 700;
+      font-weight: 800;
       margin: 0;
+      letter-spacing: 0.4px;
     }
 
     /* Ítems de navegación */
     mat-nav-list a {
-      color: rgba(255, 255, 255, 0.75);
-      border-radius: 6px;
-      margin: 2px 8px;
+      color: rgba(255, 255, 255, 0.92);
+      border-radius: 8px;
+      margin: 6px 12px;
+      padding: 8px 10px;
+      display: block;
     }
 
     mat-nav-list a:hover {
       color: #ffffff;
-      background-color: rgba(255, 255, 255, 0.08);
+      background-color: rgba(255, 255, 255, 0.06);
+      transform: translateX(2px);
     }
 
     mat-nav-list a.activo {
-      color: #ffffff;
-      background-color: rgba(25, 118, 210, 0.6);
+      color: var(--brand-green-dark);
+      background-color: rgba(255,255,255,0.9);
+      font-weight: 700;
     }
 
     .item-nav {
@@ -137,13 +143,14 @@ interface ItemNav {
 
     .boton-sesion {
       width: 100%;
-      color: rgba(255, 255, 255, 0.75);
-      border-color: rgba(255, 255, 255, 0.3);
+      color: var(--brand-green-dark);
+      background: white;
+      border-color: rgba(255,255,255,0.15);
     }
 
     .boton-sesion:hover {
-      color: #ffffff;
-      border-color: #ffffff;
+      background: #ffffff;
+      transform: translateY(-1px);
     }
 
     /* ── Barra superior ── */
@@ -151,6 +158,10 @@ interface ItemNav {
       position: sticky;
       top: 0;
       z-index: 10;
+      background: white;
+      color: var(--brand-green-dark);
+      box-shadow: 0 1px 6px rgba(16,24,32,0.06);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
     }
 
     .barra-superior__titulo {
@@ -180,6 +191,7 @@ interface ItemNav {
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      background: linear-gradient(180deg, #f8fbf9 0%, #ffffff 100%);
     }
   `],
 })

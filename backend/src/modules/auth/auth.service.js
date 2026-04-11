@@ -11,7 +11,7 @@ const login = async (username, password) => {
   const usuario = resultado.rows[0];
 
   if (!usuario) {
-    const error = new Error('Credenciales inválidas');
+    const error = new Error('Usuario incorrecto');
     error.status = 401;
     throw error;
   }
@@ -19,7 +19,7 @@ const login = async (username, password) => {
   const coincide = await bcrypt.compare(password, usuario.password_hash);
 
   if (!coincide) {
-    const error = new Error('Credenciales inválidas');
+    const error = new Error('Contraseña incorrecta');
     error.status = 401;
     throw error;
   }
