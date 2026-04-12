@@ -1,9 +1,14 @@
+<!-- OVERLAY — fuera del contenedor para no bloquear toques -->
+<div class="sidebar-overlay"
+     [class.visible]="sidebarAbierto"
+     (click)="cerrarSidebar()">
+</div>
+
 <div class="contenedor-app">
 
   <!-- ══════════════ SIDEBAR ══════════════ -->
-  <aside class="sidebar">
+  <aside class="sidebar" [class.abierto]="sidebarAbierto">
 
-    <!-- Logo -->
     <div class="sb-cabecera">
       <div class="sb-logo-circulo">
         <img src="assets/logo.png" alt="EcoRutas" class="sb-logo-img" />
@@ -14,7 +19,6 @@
       </div>
     </div>
 
-    <!-- Navegación -->
     <nav class="sb-nav">
       <span class="sb-seccion-label">Principal</span>
 
@@ -24,6 +28,7 @@
           [routerLink]="item.ruta"
           routerLinkActive="sb-item--activo"
           [routerLinkActiveOptions]="{ exact: false }"
+          (click)="cerrarSidebar()"
         >
           <mat-icon class="sb-item-icono">{{ item.icono }}</mat-icon>
           <span class="sb-item-texto">{{ item.etiqueta }}</span>
@@ -36,7 +41,6 @@
       }
     </nav>
 
-    <!-- Pie del sidebar -->
     <div class="sb-pie">
       <div class="sb-usuario">
         <div class="sb-avatar">{{ inicialesUsuario }}</div>
@@ -53,27 +57,52 @@
 
   </aside>
 
-  <!-- ══════════════ CONTENIDO PRINCIPAL ══════════════ -->
+  <!-- ══════════════ CONTENIDO ══════════════ -->
   <div class="contenido-principal">
 
-    <!-- Topbar -->
     <header class="topbar">
+
+      <!-- Hamburguesa — solo móvil -->
+      <button class="topbar-menu-btn"
+              (click)="toggleSidebar()"
+              aria-label="Abrir menú">
+        <mat-icon>{{ sidebarAbierto ? 'close' : 'menu' }}</mat-icon>
+      </button>
+
       <div class="topbar-izquierda">
         <span class="topbar-breadcrumb">
           Panel de administración ·
           <span class="topbar-breadcrumb-activo">{{ seccionActual }}</span>
         </span>
+        <span class="topbar-titulo">{{ seccionActual }}</span>
       </div>
+
       <div class="topbar-derecha">
         <div class="topbar-fecha">{{ fechaHoy }}</div>
         <div class="topbar-avatar">{{ inicialesUsuario }}</div>
       </div>
+
     </header>
 
-    <!-- Zona de contenido -->
     <main class="zona-contenido">
       <router-outlet></router-outlet>
     </main>
 
   </div>
+
 </div>
+
+<!-- BOTTOM NAV — fuera del contenedor, siempre interactuable -->
+<nav class="bottom-nav" aria-label="Navegación inferior">
+  @for (item of itemsNav; track item.ruta) {
+    <a
+      class="bn-item"
+      [routerLink]="item.ruta"
+      routerLinkActive="sb-item--activo"
+      [routerLinkActiveOptions]="{ exact: false }"
+    >
+      <mat-icon>{{ item.icono }}</mat-icon>
+      <span class="bn-label">{{ item.etiquetaCorta ?? item.etiqueta }}</span>
+    </a>
+  }
+</nav>
