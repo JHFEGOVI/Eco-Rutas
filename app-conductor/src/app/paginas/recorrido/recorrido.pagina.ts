@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { Geolocation } from '@capacitor/geolocation';
+import { firstValueFrom } from 'rxjs';
 import {
   IonContent,
   IonHeader,
@@ -21,13 +23,14 @@ import {
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline } from 'ionicons/icons';
+import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-recorrido',
   standalone: true,
   imports: [
     CommonModule,
+    DecimalPipe,
     IonContent,
     IonHeader,
     IonTitle,
@@ -87,6 +90,26 @@ import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline } from 'ioni
                   <strong>Hora de Inicio (GPS):</strong> 
                   <span>{{ formatearHora(recorridoActivo.timestamp_inicio) }}</span>
                 </div>
+                <div class="info-row gps-contenedor">
+                  <strong>Ubicación Actual:</strong> 
+                  @if (coordenadas) {
+                    <span class="coords-activas">
+                      <ion-icon name="location-outline" color="success"></ion-icon>
+                      Lat: {{ coordenadas.lat | number:'1.4-4' }}, Lon: {{ coordenadas.lon | number:'1.4-4' }}
+                    </span>
+                  } @else {
+                    <span class="coords-buscando">
+                      <ion-spinner name="dots"></ion-spinner> Detectando satélites GPS...
+                    </span>
+                  }
+                </div>
+                
+                @if (colaPosiciones.length > 0) {
+                  <div class="info-row">
+                    <strong>Puntos offline por sincronizar:</strong> 
+                    <span class="alerta-peligro">⚠️ {{ colaPosiciones.length }} posiciones pendientes</span>
+                  </div>
+                }
               </ion-card-content>
             </ion-card>
 
@@ -169,6 +192,29 @@ import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline } from 'ioni
       font-weight: 600;
       font-size: 1.1rem;
     }
+    .gps-contenedor {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #333;
+    }
+    .coords-activas {
+      color: #81c784;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 1.05rem;
+    }
+    .coords-buscando {
+      color: #ffd54f;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .alerta-peligro {
+      color: #ff5252;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
     .contenedor-boton {
       margin-top: 30px;
     }
@@ -181,11 +227,16 @@ import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline } from 'ioni
     }
   `]
 })
-export class RecorridoPagina implements OnInit {
+export class RecorridoPagina implements OnInit, OnDestroy {
   cargando = true;
   procesando = false;
   recorridoActivo: any = null;
   recorridoIdUrl: string | null = null;
+
+  coordenadas: { lat: number, lon: number } | null = null;
+  intervaloGps: any;
+  intervaloReintentos: any;
+  colaPosiciones: { lat: number, lon: number }[] = [];
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -193,12 +244,32 @@ export class RecorridoPagina implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline });
+    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.recorridoIdUrl = this.activatedRoute.snapshot.paramMap.get('id');
+    await this.solicitarPermisosGps();
     this.cargarRecorridoActivo();
+  }
+
+  ngOnDestroy() {
+    this.detenerIntervalos();
+  }
+
+  async solicitarPermisosGps() {
+    try {
+      const permisos = await Geolocation.requestPermissions();
+      if (permisos.location !== 'granted') {
+        const t = await this.toastController.create({
+          message: 'Atención: No diste permisos de Localización. La ruta no transmitirá GPS.',
+          duration: 5000, color: 'warning', position: 'bottom'
+        });
+        await t.present();
+      }
+    } catch (e) {
+      console.warn('Este dispositivo/navegador no soporta solicitud nativa previa de permisos GPS');
+    }
   }
 
   cargarRecorridoActivo() {
@@ -207,12 +278,73 @@ export class RecorridoPagina implements OnInit {
       next: (res) => {
         this.recorridoActivo = res.data || null;
         this.cargando = false;
+        
+        // Arranca el tracking si el recorrido esta vivo
+        if (this.recorridoActivo?.id) {
+          this.iniciarTrackingGps();
+        }
       },
       error: async (err) => {
         this.cargando = false;
         await this.mostrarError(err?.error?.message || 'Error al obtener estado del recorrido');
       }
     });
+  }
+
+  iniciarTrackingGps() {
+    this.tomarPosicion(); // Lectura inmediata primera
+
+    this.intervaloGps = setInterval(() => {
+      this.tomarPosicion();
+    }, 10000); // 10 segundos según el requerimiento
+
+    this.intervaloReintentos = setInterval(() => {
+      this.subirColaPendiente();
+    }, 30000); // 30 segundos según requerimiento para offline
+  }
+
+  detenerIntervalos() {
+    if (this.intervaloGps) clearInterval(this.intervaloGps);
+    if (this.intervaloReintentos) clearInterval(this.intervaloReintentos);
+  }
+
+  async tomarPosicion() {
+    try {
+      const p = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+      this.coordenadas = { lat: p.coords.latitude, lon: p.coords.longitude };
+      
+      this.enviarPosicion(this.coordenadas);
+    } catch (e) {
+      console.error('Fallo capturando el satélite GPS:', e);
+    }
+  }
+
+  enviarPosicion(pos: { lat: number, lon: number }) {
+    if (!this.recorridoActivo?.id) return;
+    
+    this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos).subscribe({
+      next: () => {},
+      error: () => {
+        // Encola la posición si se perdió conexión
+        this.colaPosiciones.push(pos);
+      }
+    });
+  }
+
+  async subirColaPendiente() {
+    if (this.colaPosiciones.length === 0 || !this.recorridoActivo?.id) return;
+    
+    // Clonamos la cola y extraemos uno por uno en orden, cancelando el lote si no hay red aún
+    const lotes = [...this.colaPosiciones];
+    for (const pos of lotes) {
+      try {
+        await firstValueFrom(this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos));
+        // Remueve la que acaba de subirse exitosamente
+        this.colaPosiciones = this.colaPosiciones.filter(p => p !== pos);
+      } catch {
+        break; // Detiene el envio del resto del lote y espera a la próxima iteración de 30s
+      }
+    }
   }
 
   finalizarRecorrido() {
@@ -222,16 +354,13 @@ export class RecorridoPagina implements OnInit {
     this.http.post<any>(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/finalizar`, {}).subscribe({
       next: async () => {
         this.procesando = false;
+        this.detenerIntervalos(); // Cortar rastreo al finalizar
         
         const toast = await this.toastController.create({
           message: '¡Recorrido finalizado exitosamente!',
-          duration: 3000,
-          color: 'success',
-          position: 'bottom',
-          icon: 'checkmark-done-outline'
+          duration: 3000, color: 'success', position: 'bottom', icon: 'checkmark-done-outline'
         });
         await toast.present();
-        
         this.router.navigate(['/rutas']);
       },
       error: async (err) => {
@@ -245,7 +374,6 @@ export class RecorridoPagina implements OnInit {
     if (!timestamp) return 'No registrada';
     try {
       const date = new Date(timestamp);
-      // Muestra solo la hora y minutos (e.g. "14:30")
       return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     } catch {
       return timestamp;
