@@ -183,9 +183,39 @@ const registrarPosicion = async (recorridoId, lat, lon, conductorId) => {
   return posicion;
 };
 
+const suspenderRecorridosVencidos = async () => {
+  try {
+    // Actualizar recorridos a suspendidos si pasan de 24h
+    const resRecorridos = await pool.query(
+      `UPDATE recorridos 
+       SET estado = 'suspendido', suspendido_auto = true, timestamp_fin = NOW(), updated_at = NOW()
+       WHERE estado = 'en_curso' AND timestamp_inicio < NOW() - INTERVAL '24 hours'
+       RETURNING asignacion_id`
+    );
+
+    const cantidad = resRecorridos.rowCount;
+    if (cantidad === 0) return;
+
+    // Obtener array de ids de las asignaciones para cancelarlas en bloque
+    const asignacionIds = resRecorridos.rows.map(r => r.asignacion_id);
+
+    if (asignacionIds.length > 0) {
+      await pool.query(
+        `UPDATE asignaciones SET estado = 'cancelada', updated_at = NOW() WHERE id = ANY($1)`,
+        [asignacionIds]
+      );
+    }
+
+    console.log(`[Job Cron] ${cantidad} recorridos vencidos (más de 24 hrs) fueron suspendidos automáticamente.`);
+  } catch (err) {
+    console.error('Error al suspender recorridos vencidos:', err.message);
+  }
+};
+
 module.exports = {
   iniciarRecorrido,
   finalizarRecorrido,
   obtenerRecorridoActivo,
-  registrarPosicion
+  registrarPosicion,
+  suspenderRecorridosVencidos
 };
