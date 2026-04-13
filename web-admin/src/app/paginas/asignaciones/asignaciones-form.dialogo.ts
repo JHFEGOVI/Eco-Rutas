@@ -6,6 +6,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -18,59 +19,99 @@ import { environment } from '../../../environments/environment';
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatIconModule,
   ],
   template: `
-    <h2 mat-dialog-title>Nueva asignación</h2>
+    <div class="dialogo-cabecera">
+      <div class="dialogo-cabecera-icono"><mat-icon>assignment_ind</mat-icon></div>
+      <div class="dialogo-cabecera-texto">
+        <h2 class="dialogo-titulo">Nueva asignación</h2>
+        <p class="dialogo-subtitulo">Asigna un conductor a una ruta y fecha</p>
+      </div>
+    </div>
 
-    <mat-dialog-content>
-      <form [formGroup]="formulario" class="formulario">
+    <mat-dialog-content class="dialogo-cuerpo">
+      <form [formGroup]="formulario" class="dialogo-form">
 
-        <!-- Selector de Conductor -->
-        <mat-form-field appearance="outline" class="campo">
-          <mat-label>Conductor</mat-label>
-          <mat-select formControlName="conductor_id">
-            @for (c of conductores; track c.id) {
-              <mat-option [value]="c.id">{{ c.nombre }} ({{ c.documento }})</mat-option>
-            }
-          </mat-select>
+        <div class="campo-grupo">
+          <label class="campo-label">Conductor</label>
+          <div class="campo-wrap">
+            <mat-icon class="campo-icono">person</mat-icon>
+            <select class="campo-input campo-select" formControlName="conductor_id">
+              @for (c of conductores; track c.id) {
+                <option value="{{ c.id }}">{{ c.nombre }} ({{ c.documento }})</option>
+              }
+            </select>
+          </div>
           @if (formulario.get('conductor_id')?.hasError('required') && formulario.get('conductor_id')?.touched) {
-            <mat-error>Debes elegir un conductor</mat-error>
+            <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>Debes elegir un conductor</span>
           }
-        </mat-form-field>
+        </div>
 
-        <!-- Selector de Ruta -->
-        <mat-form-field appearance="outline" class="campo">
-          <mat-label>Ruta</mat-label>
-          <mat-select formControlName="ruta_id">
-            @for (r of rutas; track r.id) {
-              <mat-option [value]="r.id">{{ r.nombre }}</mat-option>
-            }
-          </mat-select>
+        <div class="campo-grupo">
+          <label class="campo-label">Ruta</label>
+          <div class="campo-wrap">
+            <mat-icon class="campo-icono">map</mat-icon>
+            <select class="campo-input campo-select" formControlName="ruta_id">
+              @for (r of rutas; track r.id) {
+                <option value="{{ r.id }}">{{ r.nombre }}</option>
+              }
+            </select>
+          </div>
           @if (formulario.get('ruta_id')?.hasError('required') && formulario.get('ruta_id')?.touched) {
-            <mat-error>Debes elegir una ruta</mat-error>
+            <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>Debes elegir una ruta</span>
           }
-        </mat-form-field>
+        </div>
 
-        <!-- Datepicker nativo para Fecha -->
-        <mat-form-field appearance="outline" class="campo">
-          <mat-label>Fecha de asignación</mat-label>
-          <input matInput type="date" formControlName="fecha" />
+        <div class="campo-grupo">
+          <label class="campo-label">Fecha de asignación</label>
+          <div class="campo-wrap">
+            <mat-icon class="campo-icono">event</mat-icon>
+            <input class="campo-input" type="date" formControlName="fecha" />
+          </div>
           @if (formulario.get('fecha')?.hasError('required') && formulario.get('fecha')?.touched) {
-            <mat-error>La fecha es obligatoria</mat-error>
+            <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>La fecha es obligatoria</span>
           }
-        </mat-form-field>
+        </div>
 
       </form>
     </mat-dialog-content>
 
-    <mat-dialog-actions align="end">
-      <button mat-button [mat-dialog-close]="null">Cancelar</button>
-      <button mat-flat-button color="primary" (click)="guardar()">Guardar</button>
+    <mat-dialog-actions class="dialogo-acciones">
+      <button class="btn-cancelar" mat-dialog-close>Cancelar</button>
+      <button class="btn-guardar" (click)="guardar()">Guardar</button>
     </mat-dialog-actions>
   `,
   styles: [`
-    .formulario { display: flex; flex-direction: column; min-width: 360px; padding-top: 8px; }
-    .campo { width: 100%; margin-bottom: 8px; }
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap');
+
+    :host { font-family: 'Nunito', sans-serif; display:block; }
+
+    .dialogo-cabecera { display:flex; align-items:center; gap:10px; background:#1e8c34; padding:10px 12px; margin:0; border-radius:4px 4px 0 0; }
+    .dialogo-cabecera-icono { width:48px; height:48px; background:rgba(255,255,255,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .dialogo-cabecera-icono mat-icon { font-size:26px !important; color:#fff; }
+    .dialogo-titulo { font-size:1.05rem; font-weight:900; color:#fff; margin:0 0 2px; }
+    .dialogo-subtitulo { font-size:0.72rem; color:rgba(255,255,255,0.85); margin:0; }
+
+    .dialogo-cuerpo { padding:12px 12px 8px !important; max-height:none; overflow-y:visible; }
+    .dialogo-form { display:flex; flex-direction:column; gap:8px; }
+
+    .campo-grupo { display:flex; flex-direction:column; gap:5px; }
+    .campo-label { font-size:0.65rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.8px; }
+
+    .campo-wrap { position:relative; display:flex; align-items:center; }
+    .campo-icono { position:absolute; left:10px; font-size:15px !important; color:#bdbdbd; }
+    .campo-input { width:100%; height:40px; padding:0 12px 0 36px; border:1px solid #e8e8e8; border-radius:8px; background:#fafafa; font-size:0.83rem; }
+    .campo-input:focus { border-color:#1e8c34; background:#fff; box-shadow:0 0 0 3px rgba(30,140,52,0.12); }
+    .campo-wrap:focus-within .campo-icono { color:#1e8c34; }
+    .campo-select { appearance:none; }
+
+    .campo-error { display:flex; align-items:center; gap:4px; font-size:0.68rem; color:#e53935; padding-left:2px; }
+    .error-icono { font-size:13px !important; }
+
+    .dialogo-acciones { display:flex !important; justify-content:flex-end !important; gap:8px !important; padding:10px 12px !important; border-top:1px solid #f0f0f0; margin:0; }
+    .btn-cancelar { padding:0.55rem 1.25rem; background:transparent; border:1.5px solid #e0e0e0; border-radius:9px; font-size:0.82rem; font-weight:700; color:#555; cursor:pointer; }
+    .btn-guardar { display:flex; align-items:center; gap:7px; padding:0.55rem 1.4rem; background:#1e8c34; color:#fff; border:none; border-radius:9px; font-size:0.85rem; font-weight:700; cursor:pointer; box-shadow:0 3px 10px rgba(30,140,52,0.3); }
   `],
 })
 export class AsignacionesFormDialogo implements OnInit {

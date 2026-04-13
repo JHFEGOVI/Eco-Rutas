@@ -21,3 +21,8 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Backdrop menos intenso para algunos diálogos */
+.light-dialog-backdrop {
+  background-color: rgba(0,0,0,0.12) !important;
+}

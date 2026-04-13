@@ -83,9 +83,11 @@ export class ConductoresComponente implements OnInit {
 
   alternarEstado(conductor: Conductor): void {
     const accion = conductor.activo ? 'Desactivar' : 'Activar';
-    const ref = this.dialog.open(ConfirmarDialogo, {
-      data: { titulo: `${accion} conductor`, mensaje: `¿${accion} a ${conductor.nombre}?` },
-    });
+    const dialogData: any = { titulo: `${accion} conductor`, mensaje: `¿${accion} a ${conductor.nombre}?` };
+    // Color: rojo para desactivar, verde para activar. Ocultar icono al activar.
+    dialogData.confirmColor = conductor.activo ? 'red' : 'green';
+    if (!conductor.activo) dialogData.icon = null;
+    const ref = this.dialog.open(ConfirmarDialogo, { data: dialogData });
     ref.afterClosed().subscribe((confirmado) => {
       if (!confirmado) return;
       const req = conductor.activo

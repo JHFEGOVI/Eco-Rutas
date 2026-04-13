@@ -74,7 +74,7 @@ export class AsignacionesComponente implements OnInit {
   }
 
   cambiarEstado(asignacion: Asignacion): void {
-    const ref = this.dialog.open(AsignacionEstadoDialogo, { data: { estadoActual: asignacion.estado } });
+    const ref = this.dialog.open(AsignacionEstadoDialogo, { data: { estadoActual: asignacion.estado }, backdropClass: 'light-dialog-backdrop' });
     ref.afterClosed().subscribe((nuevoEstado) => {
       if (!nuevoEstado || nuevoEstado === asignacion.estado) return;
       const etiqueta = this.etiquetaEstado(nuevoEstado).toLowerCase();

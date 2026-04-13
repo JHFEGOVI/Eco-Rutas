@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 export interface DatosVehiculoDialogo {
   vehiculo?: any;
@@ -21,6 +22,7 @@ export interface DatosVehiculoDialogo {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatSnackBarModule,
     MatIconModule,
   ],
   template: `
@@ -47,7 +49,10 @@ export interface DatosVehiculoDialogo {
             <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>La placa es requerida</span>
           }
           @if (formulario.get('placa')?.hasError('pattern') && formulario.get('placa')?.touched) {
-            <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>Formato inválido — Use AAA-123</span>
+            <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>Formato inválido</span>
+          }
+          @if (!formulario.get('placa')?.hasError('pattern')) {
+            <span class="campo-help">Formato válido: ABC-123</span>
           }
         </div>
 
@@ -227,6 +232,8 @@ export interface DatosVehiculoDialogo {
 
     .error-icono { font-size: 13px !important; width: 13px !important; height: 13px !important; }
 
+    .campo-help { font-size: 0.68rem; color: #757575; padding-left: 2px; }
+
     /* ── Botones ── */
     .dialogo-acciones { display: flex !important; justify-content: flex-end !important; gap: 8px !important; padding: 10px 12px !important; border-top: 1px solid #f0f0f0; margin: 0; }
 
@@ -269,6 +276,7 @@ export class VehiculoFormDialogo {
     private fb: FormBuilder,
     public dialogRef: MatDialogRef<VehiculoFormDialogo>,
     @Inject(MAT_DIALOG_DATA) public datos: DatosVehiculoDialogo,
+    private snack: MatSnackBar,
   ) {
     const v = datos.vehiculo;
     this.formulario = this.fb.group({
@@ -300,6 +308,10 @@ export class VehiculoFormDialogo {
   guardar(): void {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
+      const placaCtrl = this.formulario.get('placa');
+      if (placaCtrl?.hasError('pattern')) {
+        this.snack.open('Formato inválido', 'Cerrar', { duration: 3500 });
+      }
       return;
     }
     this.dialogRef.close(this.formulario.value);

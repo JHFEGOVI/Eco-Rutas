@@ -39,8 +39,9 @@ export interface Ruta {
       <div class="panel-izquierdo mat-elevation-z2">
         <div class="cabecera">
           <h2 class="titulo">Rutas</h2>
-          <button mat-flat-button color="primary" (click)="activarNuevaRuta()">
-            <mat-icon>add</mat-icon> Nueva ruta
+          <button class="btn-nueva-ruta" (click)="activarNuevaRuta()">
+            <mat-icon>add</mat-icon>
+            <span>Nueva ruta</span>
           </button>
         </div>
 
@@ -60,12 +61,10 @@ export interface Ruta {
                   <span class="nombre">{{ r.nombre }}</span>
                 </div>
                 <div class="acciones">
-                  <button mat-icon-button color="primary" title="Editar"
-                          (click)="editarRuta(r, $event)">
+                  <button class="accion-btn editar" title="Editar" (click)="editarRuta(r, $event)">
                     <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-icon-button color="warn" title="Desactivar"
-                          (click)="confirmarDesactivar(r, $event)">
+                  <button class="accion-btn eliminar" title="Desactivar" (click)="confirmarDesactivar(r, $event)">
                     <mat-icon>delete</mat-icon>
                   </button>
                 </div>
@@ -84,27 +83,42 @@ export interface Ruta {
 
         @if (modoEdicion) {
           <div class="panel-edicion mat-elevation-z4">
+            <div class="dialogo-cabecera">
+              <div class="dialogo-cabecera-icono"><mat-icon>map</mat-icon></div>
+              <div class="dialogo-cabecera-texto">
+                <h3 class="dialogo-titulo">{{ rutaSeleccionada ? 'Editar ruta' : 'Nueva ruta' }}</h3>
+                <p class="dialogo-subtitulo">Define el trazado de la ruta y sus detalles</p>
+              </div>
+            </div>
+
             <form [formGroup]="formulario" class="form-edicion">
-              <div class="campo">
-                <label>Nombre</label>
-                <input type="text" formControlName="nombre" placeholder="Nombre de ruta" />
+              <div class="campo-grupo">
+                <label class="campo-label">Nombre</label>
+                <div class="campo-wrap">
+                  <mat-icon class="campo-icono">timeline</mat-icon>
+                  <input class="campo-input" type="text" formControlName="nombre" placeholder="Nombre de ruta" />
+                </div>
               </div>
-              <div class="campo">
-                <label>Descripción</label>
-                <textarea formControlName="descripcion" rows="2" placeholder="Detalles"></textarea>
+
+              <div class="campo-grupo">
+                <label class="campo-label">Descripción</label>
+                <div class="campo-wrap area">
+                  <mat-icon class="campo-icono">description</mat-icon>
+                  <textarea class="campo-input campo-textarea" formControlName="descripcion" rows="2" placeholder="Detalles"></textarea>
+                </div>
               </div>
+
               <div class="botones-edicion">
-                <button type="button" mat-stroked-button color="primary"
-                        (click)="deshacerUltimoPunto()"
-                        [disabled]="puntosRuta.length === 0">
-                  <mat-icon>undo</mat-icon> Deshacer
-                </button>
-                <div class="espaciador"></div>
-                <button type="button" mat-button (click)="cancelar()">Cancelar</button>
-                <button type="button" mat-flat-button color="primary"
-                        (click)="guardarRuta()"
-                        [disabled]="formulario.invalid || puntosRuta.length < 2">
-                  Guardar
+                <div class="botones-row">
+                  <button type="button" class="btn-cancelar" (click)="deshacerUltimoPunto()" [disabled]="puntosRuta.length === 0">
+                    <mat-icon>undo</mat-icon> Deshacer
+                  </button>
+                  <div class="espaciador"></div>
+                  <button type="button" class="btn-cancelar" (click)="cancelar()">Cancelar</button>
+                </div>
+
+                <button type="button" class="btn-guardar btn-guardar--full" (click)="guardarRuta()" [disabled]="formulario.invalid || puntosRuta.length < 2">
+                  <mat-icon>check</mat-icon> Guardar
                 </button>
               </div>
             </form>
@@ -153,6 +167,12 @@ export interface Ruta {
       flex-shrink: 0;
     }
 
+    .cabecera .btn-nueva-ruta {
+      display: inline-flex; align-items: center; gap:8px; padding:8px 12px; border-radius:8px; background:#1e8c34; color:#fff; border:none; cursor:pointer; font-weight:700;
+      box-shadow: 0 6px 18px rgba(30,140,52,0.14);
+    }
+    .cabecera .btn-nueva-ruta mat-icon { font-size:18px; }
+
     .titulo {
       margin: 0;
       font-size: 1.1rem;
@@ -176,19 +196,24 @@ export interface Ruta {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px;
-      border-bottom: 1px solid #f5f5f5;
+      padding: 12px 14px;
+      border-bottom: none;
       cursor: pointer;
-      transition: background 0.15s;
-      min-height: 44px; /* área táctil mínima */
+      transition: background 0.18s, box-shadow 0.18s, transform 0.06s;
+      min-height: 48px; /* área táctil mínima */
+      background: #fff;
+      border-radius: 8px;
+      margin: 8px 12px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
     }
 
-    .item-ruta:hover { background: #f9f9f9; }
+    .item-ruta:hover { background: #fbfff9; box-shadow: 0 4px 18px rgba(0,0,0,0.06); transform: translateY(-1px); }
 
     .item-ruta.seleccionada {
-      background: #e8f5e9;
+      background: #eaf8ee;
       border-left: 4px solid #1e8c34;
       padding-left: 12px;
+      box-shadow: 0 6px 20px rgba(30,140,52,0.06);
     }
 
     .info {
@@ -203,9 +228,26 @@ export interface Ruta {
 
     .acciones {
       display: flex;
-      gap: 2px;
+      gap: 8px;
       flex-shrink: 0;
+      align-items: center;
     }
+
+    .accion-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.12s, transform 0.06s;
+    }
+    .accion-btn mat-icon { font-size:18px; color:#111; }
+    .accion-btn.editar:hover { background: rgba(30,140,52,0.06); }
+    .accion-btn.eliminar:hover { background: rgba(198,40,40,0.06); }
 
     .sin-datos {
       padding: 24px;
@@ -239,56 +281,63 @@ export interface Ruta {
       z-index: 1;
     }
 
-    /* ── Panel de edición flotante ── */
+    /* ── Panel de edición flotante (estilo diálogo compacto) ── */
     .panel-edicion {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 12px;
       z-index: 1000;
       background: #fff;
-      border-radius: 10px;
-      padding: 16px;
+      border-radius: 12px;
+      padding: 12px;
       width: 300px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      overflow: hidden;
     }
 
-    .form-edicion {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .campo { display: flex; flex-direction: column; gap: 4px; }
-
-    .campo label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #555;
-    }
-
-    .campo input, .campo textarea {
-      padding: 8px 10px;
-      border: 1.5px solid #d0e8c8;
-      border-radius: 8px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.85rem;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-
-    .campo input:focus, .campo textarea:focus {
-      border-color: #1e8c34;
-    }
-
-    .botones-edicion {
+    .dialogo-cabecera {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 4px;
-      flex-wrap: wrap;
+      gap: 12px;
+      background: #1e8c34;
+      padding: 12px;
+      margin: -12px -12px 10px -12px;
+      border-radius: 10px 10px 6px 6px;
+      color: #fff;
     }
 
-    .espaciador { flex: 1; }
+    .dialogo-cabecera-icono {
+      width: 52px; height: 52px; border-radius: 12px; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.14);
+    }
+    .dialogo-cabecera-icono mat-icon { color: #fff; font-size:22px !important; }
+    .dialogo-titulo { margin:0; font-weight:900; font-size:1.05rem; }
+    .dialogo-subtitulo { margin:0; font-size:0.72rem; opacity:0.95; }
+
+    .form-edicion { display:flex; flex-direction:column; gap:8px; }
+
+    .campo-grupo { display:flex; flex-direction:column; gap:6px; }
+    .campo-label { font-size:0.65rem; font-weight:700; color:#555; text-transform:uppercase; letter-spacing:0.8px; }
+
+    .campo-wrap { position: relative; display:flex; align-items:center; }
+    .campo-icono { position:absolute; left:12px; color:#98a98f; font-size:14px !important; }
+    .campo-input { width:100%; height:38px; padding:0 12px 0 40px; border:1.5px solid #e6f3ea; border-radius:10px; background:#fff; font-size:0.86rem; color:#333; }
+    .campo-textarea { min-height:72px; padding:10px 12px 10px 40px; border:1.5px solid #e6f3ea; border-radius:10px; background:#fff; resize:vertical; }
+    .campo-input::placeholder, .campo-textarea::placeholder { color:#cfcfcf; }
+    .campo-input:focus, .campo-textarea:focus { border-color:#c9efcf; box-shadow:0 6px 18px rgba(30,140,52,0.08); outline:none; }
+
+    .botones-edicion { display:flex; flex-direction:column; gap:10px; margin-top:6px; }
+    .botones-row { display:flex; gap:10px; align-items:center; }
+    .espaciador { flex:1; }
+
+    .btn-cancelar { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; background:#fff; border:1.5px solid #e6e6e6; border-radius:10px; font-weight:700; color:#222; }
+    .btn-cancelar[disabled] { opacity:0.6; }
+
+    .btn-secondary { background:#fff; border:1.5px solid #000; color:#111; padding:10px 14px; border-radius:10px; font-weight:700; }
+
+    .btn-guardar { display:inline-flex; align-items:center; gap:10px; padding:12px 16px; background:#9fd3b1; color:#fff; border-radius:12px; font-weight:800; border:none; box-shadow:0 10px 24px rgba(30,140,52,0.12); }
+    .btn-guardar mat-icon { font-size:18px; }
+    .btn-guardar--full { width:100%; justify-content:center; }
+    .btn-guardar:disabled { opacity:0.6; cursor:not-allowed; }
 
     /* ════════════════════════════════
        RESPONSIVE — MÓVIL ≤ 768px
@@ -529,6 +578,16 @@ export class RutasComponente implements OnInit, AfterViewInit {
   }
 
   seleccionarRuta(ruta: Ruta): void {
+    // Toggle selection: si ya está seleccionada, quitar selección
+    if (this.rutaSeleccionada?.id === ruta.id) {
+      this.rutaSeleccionada = null;
+      this.modoEdicion = false;
+      this.puntosRuta = [];
+      this.limpiarCapasTemporales();
+      this.cd.detectChanges();
+      return;
+    }
+
     this.modoEdicion      = false;
     this.rutaSeleccionada = ruta;
     this.limpiarCapasTemporales();
