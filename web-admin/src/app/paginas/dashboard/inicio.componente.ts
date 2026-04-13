@@ -1,33 +1,29 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { AuthServicio } from '../../servicios/auth.servicio';
-import { environment } from '../../../environments/environment';
+import { HttpClient }   from '@angular/common/http';
+import { Router }       from '@angular/router';
+import { MatIconModule }             from '@angular/material/icon';
+import { MatProgressSpinnerModule }  from '@angular/material/progress-spinner';
+import { AuthServicio }  from '../../servicios/auth.servicio';
+import { environment }   from '../../../environments/environment';
 
 interface ResumenDashboard {
-  totalVehiculos: number;
-  vehiculosOperativos: number;
-  vehiculosAveriados: number;
-  totalConductores: number;
-  conductoresActivos: number;
-  totalRutas: number;
-  totalAsignaciones: number;
+  totalVehiculos:         number;
+  vehiculosOperativos:    number;
+  vehiculosAveriados:     number;
+  totalConductores:       number;
+  conductoresActivos:     number;
+  totalRutas:             number;
+  totalAsignaciones:      number;
   asignacionesPendientes: number;
 }
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-  ],
+  imports: [CommonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './inicio.componente.html',
-  styleUrls:    ['./inicio.componente.css'],
+  styleUrls:   ['./inicio.componente.css'],
 })
 export class InicioComponente implements OnInit {
 
@@ -35,23 +31,21 @@ export class InicioComponente implements OnInit {
   cargando = true;
 
   resumen: ResumenDashboard = {
-    totalVehiculos: 0,
-    vehiculosOperativos: 0,
-    vehiculosAveriados: 0,
-    totalConductores: 0,
-    conductoresActivos: 0,
-    totalRutas: 0,
-    totalAsignaciones: 0,
+    totalVehiculos:         0,
+    vehiculosOperativos:    0,
+    vehiculosAveriados:     0,
+    totalConductores:       0,
+    conductoresActivos:     0,
+    totalRutas:             0,
+    totalAsignaciones:      0,
     asignacionesPendientes: 0,
   };
 
-  actividadReciente: { texto: string; tiempo: string; tipo: 'exito' | 'alerta' | 'info' }[] = [];
-
   constructor(
-    private http: HttpClient,
-    private router: Router,
+    private http:         HttpClient,
+    private router:       Router,
     private authServicio: AuthServicio,
-    private cdr: ChangeDetectorRef,
+    private cdr:          ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -62,40 +56,58 @@ export class InicioComponente implements OnInit {
 
   cargarResumen(): void {
     this.cargando = true;
-    this.cdr.markForCheck(); // Forzar detección al iniciar carga
+    this.cdr.markForCheck();
 
-    // Carga en paralelo vehículos, conductores, rutas y asignaciones
     Promise.all([
       this.http.get<any>(`${environment.apiUrl}/vehiculos`).toPromise().catch(() => ({ data: [] })),
       this.http.get<any>(`${environment.apiUrl}/usuarios`).toPromise().catch(() => ({ data: [] })),
       this.http.get<any>(`${environment.apiUrl}/rutas`).toPromise().catch(() => ({ data: [] })),
       this.http.get<any>(`${environment.apiUrl}/asignaciones`).toPromise().catch(() => ({ data: [] })),
     ]).then(([vehiculos, conductores, rutas, asignaciones]) => {
-      const v = vehiculos?.data ?? [];
+      const v = vehiculos?.data   ?? [];
       const c = conductores?.data ?? [];
-      const r = rutas?.data ?? [];
+      const r = rutas?.data       ?? [];
       const a = asignaciones?.data ?? [];
 
       this.resumen = {
-        totalVehiculos:        v.length,
-        vehiculosOperativos:   v.filter((x: any) => x.estado === 'operativo').length,
-        vehiculosAveriados:    v.filter((x: any) => x.estado === 'averiado').length,
-        totalConductores:      c.length,
-        conductoresActivos:    c.filter((x: any) => x.activo).length,
-        totalRutas:            r.length,
-        totalAsignaciones:     a.length,
+        totalVehiculos:         v.length,
+        vehiculosOperativos:    v.filter((x: any) => x.estado === 'operativo').length,
+        vehiculosAveriados:     v.filter((x: any) => x.estado === 'averiado').length,
+        totalConductores:       c.length,
+        conductoresActivos:     c.filter((x: any) => x.activo).length,
+        totalRutas:             r.length,
+        totalAsignaciones:      a.length,
         asignacionesPendientes: a.filter((x: any) => x.estado === 'pendiente').length,
       };
 
       this.cargando = false;
-      this.cdr.markForCheck(); // Forzar detección al completar carga
+      this.cdr.markForCheck();
     });
   }
 
+  /* ── Helpers para las gráficas donut ── */
+
+  /** Porcentaje redondeado, seguro contra división por cero */
+  getPct(valor: number, total: number): number {
+    if (!total || total === 0) return 0;
+    return Math.round((valor / total) * 100);
+  }
+
+  /**
+   * stroke-dasharray para el círculo SVG.
+   * Circunferencia con r=30: 2 * π * 30 ≈ 188.4
+   */
+  getDashArray(valor: number, total: number): string {
+    const circ = 188.4;
+    const pct  = this.getPct(valor, total) / 100;
+    const fill = Math.round(circ * pct * 10) / 10;
+    return `${fill} ${circ}`;
+  }
+
   get saludo(): string {
-    const hora = new Date().getHours();
-    if (hora < 12) return '¡Buenos días';
-    if (hora < 18) return '¡Buenas tardes';
+    const h = new Date().getHours();
+    if (h < 12) return '¡Buenos días';
+    if (h < 18) return '¡Buenas tardes';
     return '¡Buenas noches';
   }
 

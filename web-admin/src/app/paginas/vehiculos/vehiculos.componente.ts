@@ -101,6 +101,8 @@ export class VehiculosComponente implements OnInit {
   abrirFormulario(vehiculo?: Vehiculo): void {
     const ref = this.dialog.open(VehiculoFormDialogo, {
       width: '420px',
+      maxWidth: '95vw',
+      panelClass: 'vehiculo-dialog-panel',
       data: { vehiculo },
     });
     ref.afterClosed().subscribe((datos) => {
