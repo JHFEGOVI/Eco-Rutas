@@ -1,0 +1,106 @@
+<ion-content [scrollY]="false" class="fondo-verde">
+
+  <div class="contenedor">
+    <div class="tarjeta">
+
+      <!-- Puntos decorativos -->
+      <div class="puntos">
+        <span class="punto rojo"></span>
+        <span class="punto amarillo"></span>
+        <span class="punto verde-dot"></span>
+      </div>
+
+      <!-- Logo -->
+      <div class="logo-area">
+        <div class="logo-circulo">
+          <img src="assets/icon/logo.png" alt="Logo" class="logo-img" />
+        </div>
+        <p class="logo-sub">APP CONDUCTOR</p>
+      </div>
+
+      <!-- Formulario -->
+      <form [formGroup]="formulario" (ngSubmit)="iniciarSesion()">
+
+        <!-- USUARIO -->
+        <div class="campo-grupo">
+          <span class="campo-label">Usuario</span>
+          <div class="campo-wrap">
+            <svg class="campo-icono" viewBox="0 0 24 24">
+              <path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/>
+            </svg>
+            <input
+              class="campo-input"
+              type="text"
+              formControlName="usuario"
+              placeholder="Ingresa tu usuario"
+              autocomplete="username"
+            />
+          </div>
+
+          <span class="campo-error"
+            *ngIf="formulario.get('usuario')?.hasError('required') && formulario.get('usuario')?.touched">
+            El usuario es requerido
+          </span>
+        </div>
+
+        <!-- CONTRASEÑA -->
+        <div class="campo-grupo">
+          <span class="campo-label">Contraseña</span>
+          <div class="campo-wrap">
+            <svg class="campo-icono" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+            </svg>
+            <input
+              class="campo-input"
+              type="password"
+              formControlName="contrasena"
+              placeholder="Ingresa tu contraseña"
+              autocomplete="current-password"
+            />
+          </div>
+
+          <span class="campo-error"
+            *ngIf="formulario.get('contrasena')?.hasError('required') && formulario.get('contrasena')?.touched">
+            La contraseña es requerida
+          </span>
+        </div>
+
+        <!-- ERROR GENERAL LOGIN -->
+        <div class="campo-error"
+          *ngIf="error">
+          Usuario o contraseña incorrectos
+        </div>
+
+        <!-- BOTÓN -->
+        <button
+          type="submit"
+          class="btn-ingresar"
+          [disabled]="formulario.invalid || cargando"
+        >
+          <ng-container *ngIf="cargando; else textoBoton">
+            <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+            Verificando...
+          </ng-container>
+
+          <ng-template #textoBoton>
+            <svg class="btn-icono" viewBox="0 0 24 24">
+              <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
+            </svg>
+            Iniciar sesión
+          </ng-template>
+        </button>
+
+      </form>
+
+      <!-- Seguridad -->
+      <div class="badge-seguro">
+        <svg class="badge-icono" viewBox="0 0 24 24">
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+        </svg>
+        Conexión cifrada · EcoRutas v1.0
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>
