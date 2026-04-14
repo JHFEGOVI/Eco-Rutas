@@ -18,6 +18,8 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "node-fetch": "^2.7.0",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }
