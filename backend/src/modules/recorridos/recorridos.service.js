@@ -212,10 +212,49 @@ const suspenderRecorridosVencidos = async () => {
   }
 };
 
+const obtenerRecorridosActivos = async () => {
+  const rs = await pool.query(`
+    SELECT
+      r.id,
+      r.external_id,
+      r.timestamp_inicio,
+
+      -- Datos de la ruta
+      ru.id        AS ruta_id,
+      ru.nombre    AS ruta_nombre,
+      ST_AsGeoJSON(ru.geometria)::json AS ruta_geometria,
+
+      -- Datos del vehículo
+      v.placa      AS vehiculo_placa,
+      v.marca      AS vehiculo_marca,
+
+      -- Última posición registrada (subquery)
+      (
+        SELECT row_to_json(p_last)
+        FROM (
+          SELECT lat, lon, timestamp_captura
+          FROM posiciones
+          WHERE recorrido_id = r.id
+          ORDER BY created_at DESC
+          LIMIT 1
+        ) p_last
+      ) AS ultima_posicion
+
+    FROM recorridos r
+    JOIN asignaciones a  ON r.asignacion_id = a.id
+    JOIN rutas ru        ON a.ruta_id = ru.id
+    JOIN vehiculos v     ON r.vehiculo_id = v.id
+    WHERE r.estado = 'en_curso'
+    ORDER BY r.timestamp_inicio ASC
+  `);
+  return rs.rows;
+};
+
 module.exports = {
   iniciarRecorrido,
   finalizarRecorrido,
   obtenerRecorridoActivo,
+  obtenerRecorridosActivos,
   registrarPosicion,
   suspenderRecorridosVencidos
 };

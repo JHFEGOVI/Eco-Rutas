@@ -51,9 +51,19 @@ const registrarPosicionController = async (req, res, next) => {
   }
 };
 
+const activosPublicoController = async (req, res, next) => {
+  try {
+    const datos = await servicio.obtenerRecorridosActivos();
+    res.json({ success: true, data: datos });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   iniciarController,
   finalizarController,
   activoController,
-  registrarPosicionController
+  registrarPosicionController,
+  activosPublicoController
 };
