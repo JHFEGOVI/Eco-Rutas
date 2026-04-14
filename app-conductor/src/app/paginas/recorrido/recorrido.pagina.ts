@@ -6,24 +6,10 @@ import { Geolocation } from '@capacitor/geolocation';
 import { firstValueFrom } from 'rxjs';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
-  IonButton,
   IonSpinner,
-  IonIcon,
-  IonButtons,
-  IonBackButton,
-  ToastController
+  ToastController,
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
-import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-recorrido',
@@ -32,223 +18,297 @@ import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOut
     CommonModule,
     DecimalPipe,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonCardContent,
-    IonButton,
     IonSpinner,
-    IonIcon,
-    IonButtons,
-    IonBackButton
   ],
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
-        <ion-buttons slot="start">
-          <ion-back-button defaultHref="/rutas"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Recorrido Activo</ion-title>
-      </ion-toolbar>
-    </ion-header>
+    <ion-content [scrollY]="true" class="fondo-oscuro">
 
-    <ion-content class="ion-padding fondo-oscuro">
-      @if (cargando) {
-        <div class="contenedor-centrado">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Verificando estado del recorrido...</p>
-        </div>
-      } @else {
-        @if (!recorridoActivo) {
-          <div class="contenedor-centrado msg-vacio">
-            <ion-icon name="close-circle-outline" color="medium"></ion-icon>
-            <h2>No tienes un recorrido activo</h2>
-            <ion-button class="ion-margin-top" color="primary" routerLink="/rutas">
-              Volver a mis rutas
-            </ion-button>
-          </div>
-        } @else {
-          <div class="contenedor-top">
-            <ion-card class="tarjeta-recorrido">
-              <ion-card-header>
-                <ion-card-subtitle>Información actual</ion-card-subtitle>
-                <ion-card-title>
-                  Ruta: {{ recorridoActivo.ruta_nombre || recorridoActivo.ruta_id }}
-                </ion-card-title>
-              </ion-card-header>
-
-              <ion-card-content>
-                <div class="info-row">
-                  <strong>Vehículo Asignado:</strong> 
-                  <span class="placa-vehiculo">{{ recorridoActivo.placa }} - {{ recorridoActivo.marca }}</span>
-                </div>
-                <div class="info-row">
-                  <strong>Hora de Inicio (GPS):</strong> 
-                  <span>{{ formatearHora(recorridoActivo.timestamp_inicio) }}</span>
-                </div>
-                <div class="info-row gps-contenedor">
-                  <strong>Ubicación Actual:</strong> 
-                  @if (coordenadas) {
-                    <span class="coords-activas">
-                      <ion-icon name="location-outline" color="success"></ion-icon>
-                      Lat: {{ coordenadas.lat | number:'1.4-4' }}, Lon: {{ coordenadas.lon | number:'1.4-4' }}
-                    </span>
-                  } @else {
-                    <span class="coords-buscando">
-                      <ion-spinner name="dots"></ion-spinner> Detectando satélites GPS...
-                    </span>
-                  }
-                </div>
-                
-                @if (colaPosiciones.length > 0) {
-                  <div class="info-row">
-                    <strong>Puntos offline por sincronizar:</strong> 
-                    <span class="alerta-peligro">⚠️ {{ colaPosiciones.length }} posiciones pendientes</span>
-                  </div>
-                }
-              </ion-card-content>
-            </ion-card>
-
-            <div class="contenedor-boton">
-              <ion-button 
-                expand="block" 
-                color="success" 
-                (click)="finalizarRecorrido()"
-                [disabled]="procesando"
-                class="boton-finalizar"
-              >
-                @if (procesando) {
-                  <ion-spinner name="crescent"></ion-spinner>
-                } @else {
-                  <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
-                  Finalizar recorrido
-                }
-              </ion-button>
-            </div>
+      <!-- TOOLBAR MANUAL -->
+      <div class="toolbar">
+        <button class="toolbar-back" (click)="volverARutas()">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+          Volver
+        </button>
+        @if (recorridoActivo) {
+          <div class="toolbar-status">
+            <span class="status-dot"></span>
+            EN CURSO
           </div>
         }
+      </div>
+
+      <!-- CARGANDO -->
+      @if (cargando) {
+        <div class="centro">
+          <ion-spinner name="crescent" class="spinner-verde"></ion-spinner>
+          <p class="centro-txt">Verificando recorrido...</p>
+        </div>
       }
+
+      <!-- SIN RECORRIDO -->
+      @if (!cargando && !recorridoActivo) {
+        <div class="vacio">
+          <div class="vacio-ico">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          </div>
+          <p class="vacio-titulo">Sin recorrido activo</p>
+          <p class="vacio-sub">No tienes un recorrido en curso actualmente</p>
+          <button class="btn-volver" (click)="volverARutas()">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Volver a mis rutas
+          </button>
+        </div>
+      }
+
+      <!-- RECORRIDO ACTIVO -->
+      @if (!cargando && recorridoActivo) {
+
+        <!-- HERO -->
+        <div class="hero">
+          <p class="hero-sub">Recorrido activo</p>
+          <h1 class="hero-ruta">{{ recorridoActivo.ruta_nombre || 'Ruta asignada' }}</h1>
+          <div class="hero-inicio">
+            <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+            Iniciado a las {{ formatearHora(recorridoActivo.timestamp_inicio) }}
+          </div>
+        </div>
+
+        <div class="content">
+
+          <!-- VEHÍCULO -->
+          <div class="info-card">
+            <div class="info-card-titulo">
+              <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4z"/></svg>
+              Vehículo asignado
+            </div>
+            <div class="info-fila">
+              <span class="info-key">Placa</span>
+              <span class="info-val placa">{{ recorridoActivo.placa || '—' }}</span>
+            </div>
+            <div class="info-fila">
+              <span class="info-key">Marca</span>
+              <span class="info-val">{{ recorridoActivo.marca || '—' }}</span>
+            </div>
+          </div>
+
+          <!-- GPS -->
+          <div class="gps-card">
+            <div class="gps-ico-wrap">
+              <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+            </div>
+            <div class="gps-info">
+              <span class="gps-titulo">Ubicación GPS actual</span>
+              @if (coordenadas) {
+                <span class="gps-coords">
+                  {{ coordenadas.lat | number:'1.4-4' }}° N,
+                  {{ coordenadas.lon | number:'1.4-4' }}° W
+                </span>
+              } @else {
+                <span class="gps-buscando">
+                  <ion-spinner name="dots" class="spinner-mini"></ion-spinner>
+                  Detectando señal GPS...
+                </span>
+              }
+            </div>
+            <div class="gps-estado" [class.gps-estado--activo]="!!coordenadas">
+              {{ coordenadas ? 'Activo' : 'Buscando' }}
+            </div>
+          </div>
+
+          <!-- COLA OFFLINE -->
+          @if (colaPosiciones.length > 0) {
+            <div class="alerta-offline">
+              <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+              {{ colaPosiciones.length }} posiciones pendientes de sincronizar
+            </div>
+          }
+
+          <!-- BOTÓN FINALIZAR -->
+          <button
+            class="btn-finalizar"
+            [disabled]="procesando"
+            (click)="finalizarRecorrido()"
+          >
+            @if (procesando) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              Finalizando...
+            } @else {
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Finalizar recorrido
+            }
+          </button>
+
+        </div>
+      }
+
     </ion-content>
   `,
   styles: [`
-    .fondo-oscuro {
-      --background: #121212;
-      color: #e0e0e0;
+    .fondo-oscuro { --background: #0f1f0f; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 52px 16px 12px;
+      background: #145a24;
     }
-    .contenedor-centrado {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      text-align: center;
+    .toolbar-back {
+      display: flex; align-items: center; gap: 6px;
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,0.9); font-size: 0.82rem; font-weight: 600;
+      font-family: inherit;
     }
-    .msg-vacio h2 {
-      color: #a0a0a0;
-      font-size: 1.2rem;
-      font-weight: 500;
-      margin-top: 10px;
+    .toolbar-back svg { width: 18px; height: 18px; fill: rgba(255,255,255,0.9); }
+    .toolbar-status {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(255,255,255,0.15);
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 0.62rem; font-weight: 700; color: #fff;
     }
-    .msg-vacio ion-icon {
-      font-size: 4rem;
-      margin-bottom: 5px;
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: #69f0ae;
+      animation: blink 1.5s ease-in-out infinite;
     }
-    .contenedor-top {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding-bottom: 20px;
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+    /* ── Hero ── */
+    .hero {
+      background: #145a24;
+      padding: 8px 16px 28px;
+      position: relative; overflow: hidden;
     }
-    .tarjeta-recorrido {
-      --background: #1e1e1e;
-      --color: #e0e0e0;
-      border-radius: 12px;
-      margin: 0;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    .hero::after {
+      content: ''; position: absolute;
+      bottom: -20px; left: 0; right: 0; height: 40px;
+      background: #0f1f0f;
+      border-radius: 50% 50% 0 0 / 100% 100% 0 0;
     }
-    ion-card-title {
-      font-size: 1.4rem;
-      color: #ffffff;
-      margin-top: 5px;
+    .hero-sub {
+      font-size: 0.62rem; color: rgba(255,255,255,0.65);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      margin: 0 0 3px; position: relative; z-index: 1;
     }
-    .info-row {
-      margin-bottom: 12px;
-      font-size: 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .hero-ruta {
+      font-size: 1.3rem; font-weight: 900; color: #fff;
+      margin: 0 0 6px; position: relative; z-index: 1;
     }
-    .info-row strong {
-      color: #a0a0a0;
-      font-size: 0.9rem;
+    .hero-inicio {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 0.68rem; color: rgba(255,255,255,0.7);
+      position: relative; z-index: 1;
     }
-    .placa-vehiculo {
-      color: #4caf50;
-      font-weight: 600;
-      font-size: 1.1rem;
+    .hero-inicio svg { width: 12px; height: 12px; fill: rgba(255,255,255,0.7); }
+
+    /* ── Content ── */
+    .content { padding: 24px 14px 24px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Centro / Vacío ── */
+    .centro { display: flex; flex-direction: column; align-items: center; padding: 4rem 1rem; gap: 12px; }
+    .spinner-verde { --color: #4caf50; }
+    .centro-txt { font-size: 0.82rem; color: #4a6a4a; }
+    .vacio { display: flex; flex-direction: column; align-items: center; padding: 4rem 1.5rem; gap: 10px; }
+    .vacio-ico { width: 64px; height: 64px; background: #1a2e1a; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .vacio-ico svg { width: 30px; height: 30px; fill: #4caf50; }
+    .vacio-titulo { font-size: 1rem; font-weight: 900; color: #e0e0e0; text-align: center; }
+    .vacio-sub { font-size: 0.78rem; color: #4a6a4a; text-align: center; }
+
+    /* ── Info card ── */
+    .info-card {
+      background: #1a2e1a; border-radius: 14px;
+      padding: 14px; border: 1px solid #2d4d2d;
     }
-    .gps-contenedor {
-      margin-top: 10px;
-      padding-top: 10px;
-      border-top: 1px solid #333;
+    .info-card-titulo {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 0.65rem; font-weight: 700; color: #81c784;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-bottom: 10px;
     }
-    .coords-activas {
-      color: #81c784;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 1.05rem;
+    .info-card-titulo svg { width: 14px; height: 14px; fill: #81c784; }
+    .info-fila {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 0; border-bottom: 1px solid #2d4d2d;
     }
-    .coords-buscando {
-      color: #ffd54f;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    .info-fila:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-key { font-size: 0.72rem; color: #81c784; }
+    .info-val { font-size: 0.78rem; font-weight: 700; color: #e0e0e0; }
+    .info-val.placa { color: #4caf50; font-family: monospace; font-size: 0.9rem; }
+
+    /* ── GPS card ── */
+    .gps-card {
+      background: #1a2e1a; border-radius: 14px;
+      padding: 12px 14px; border: 1px solid #2d4d2d;
+      display: flex; align-items: center; gap: 12px;
     }
-    .alerta-peligro {
-      color: #ff5252;
-      font-size: 0.9rem;
-      font-weight: 600;
+    .gps-ico-wrap {
+      width: 40px; height: 40px; background: #1e8c34;
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .contenedor-boton {
-      margin-top: 30px;
+    .gps-ico-wrap svg { width: 20px; height: 20px; fill: #fff; }
+    .gps-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+    .gps-titulo { font-size: 0.65rem; color: #81c784; font-weight: 700; }
+    .gps-coords { font-size: 0.78rem; font-weight: 700; color: #e0e0e0; }
+    .gps-buscando { display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #ffd54f; }
+    .spinner-mini { --color: #ffd54f; width: 14px; height: 14px; }
+    .gps-estado {
+      font-size: 0.62rem; font-weight: 700; padding: 3px 8px;
+      border-radius: 20px; background: #f5f5f5; color: #9e9e9e; flex-shrink: 0;
     }
-    .boton-finalizar {
-      --border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(46, 125, 50, 0.4);
-      height: 60px;
-      font-size: 1.2rem;
-      font-weight: bold;
+    .gps-estado--activo { background: #e8f5e9; color: #1e8c34; }
+
+    /* ── Alerta offline ── */
+    .alerta-offline {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(198,40,40,0.15); border: 1px solid rgba(198,40,40,0.3);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 0.75rem; color: #ef9a9a; font-weight: 600;
     }
-  `]
+    .alerta-offline svg { width: 16px; height: 16px; fill: #ef9a9a; flex-shrink: 0; }
+
+    /* ── Botones ── */
+    .btn-volver {
+      display: flex; align-items: center; gap: 6px;
+      padding: 0.6rem 1.25rem;
+      background: #1a2e1a; color: #81c784;
+      border: 1.5px solid #2d4d2d; border-radius: 10px;
+      font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; font-family: inherit; margin-top: 8px;
+    }
+    .btn-volver svg { width: 16px; height: 16px; fill: #81c784; }
+
+    .btn-finalizar {
+      width: 100%; height: 56px;
+      background: #c62828; color: #fff; border: none;
+      border-radius: 14px; font-size: 1rem; font-weight: 900;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      cursor: pointer; font-family: inherit;
+      box-shadow: 0 4px 16px rgba(198,40,40,0.4);
+      margin-top: 8px;
+    }
+    .btn-finalizar:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-finalizar svg { width: 22px; height: 22px; fill: #fff; }
+    .btn-spinner { --color: #fff; width: 20px; height: 20px; }
+  `],
 })
 export class RecorridoPagina implements OnInit, OnDestroy {
   cargando = true;
   procesando = false;
   recorridoActivo: any = null;
-  recorridoIdUrl: string | null = null;
+  coordenadas: { lat: number; lon: number } | null = null;
+  colaPosiciones: { lat: number; lon: number }[] = [];
 
-  coordenadas: { lat: number, lon: number } | null = null;
-  intervaloGps: any;
-  intervaloReintentos: any;
-  colaPosiciones: { lat: number, lon: number }[] = [];
+  private intervaloGps: any;
+  private intervaloReintentos: any;
 
   constructor(
     private activatedRoute: ActivatedRoute,
     private http: HttpClient,
     private router: Router,
-    private toastController: ToastController
-  ) {
-    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline });
-  }
+    private toastController: ToastController,
+  ) {}
 
   async ngOnInit() {
-    this.recorridoIdUrl = this.activatedRoute.snapshot.paramMap.get('id');
     await this.solicitarPermisosGps();
     this.cargarRecorridoActivo();
   }
@@ -261,14 +321,10 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     try {
       const permisos = await Geolocation.requestPermissions();
       if (permisos.location !== 'granted') {
-        const t = await this.toastController.create({
-          message: 'Atención: No diste permisos de Localización. La ruta no transmitirá GPS.',
-          duration: 5000, color: 'warning', position: 'bottom'
-        });
-        await t.present();
+        await this.mostrarToast('Atención: Sin permisos GPS. La ruta no transmitirá ubicación.', 'warning');
       }
     } catch (e) {
-      console.warn('Este dispositivo/navegador no soporta solicitud nativa previa de permisos GPS');
+      console.warn('GPS no soportado en este entorno');
     }
   }
 
@@ -278,29 +334,21 @@ export class RecorridoPagina implements OnInit, OnDestroy {
       next: (res) => {
         this.recorridoActivo = res.data || null;
         this.cargando = false;
-        
-        // Arranca el tracking si el recorrido esta vivo
         if (this.recorridoActivo?.id) {
           this.iniciarTrackingGps();
         }
       },
       error: async (err) => {
         this.cargando = false;
-        await this.mostrarError(err?.error?.message || 'Error al obtener estado del recorrido');
-      }
+        await this.mostrarToast(err?.error?.message || 'Error al obtener el recorrido', 'danger');
+      },
     });
   }
 
   iniciarTrackingGps() {
-    this.tomarPosicion(); // Lectura inmediata primera
-
-    this.intervaloGps = setInterval(() => {
-      this.tomarPosicion();
-    }, 10000); // 10 segundos según el requerimiento
-
-    this.intervaloReintentos = setInterval(() => {
-      this.subirColaPendiente();
-    }, 30000); // 30 segundos según requerimiento para offline
+    this.tomarPosicion();
+    this.intervaloGps = setInterval(() => this.tomarPosicion(), 10000);
+    this.intervaloReintentos = setInterval(() => this.subirColaPendiente(), 30000);
   }
 
   detenerIntervalos() {
@@ -312,80 +360,66 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     try {
       const p = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
       this.coordenadas = { lat: p.coords.latitude, lon: p.coords.longitude };
-      
       this.enviarPosicion(this.coordenadas);
     } catch (e) {
-      console.error('Fallo capturando el satélite GPS:', e);
+      console.error('Error GPS:', e);
     }
   }
 
-  enviarPosicion(pos: { lat: number, lon: number }) {
+  enviarPosicion(pos: { lat: number; lon: number }) {
     if (!this.recorridoActivo?.id) return;
-    
     this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos).subscribe({
       next: () => {},
-      error: () => {
-        // Encola la posición si se perdió conexión
-        this.colaPosiciones.push(pos);
-      }
+      error: () => { this.colaPosiciones.push(pos); },
     });
   }
 
   async subirColaPendiente() {
     if (this.colaPosiciones.length === 0 || !this.recorridoActivo?.id) return;
-    
-    // Clonamos la cola y extraemos uno por uno en orden, cancelando el lote si no hay red aún
-    const lotes = [...this.colaPosiciones];
-    for (const pos of lotes) {
+    const lote = [...this.colaPosiciones];
+    for (const pos of lote) {
       try {
-        await firstValueFrom(this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos));
-        // Remueve la que acaba de subirse exitosamente
+        await firstValueFrom(
+          this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos)
+        );
         this.colaPosiciones = this.colaPosiciones.filter(p => p !== pos);
       } catch {
-        break; // Detiene el envio del resto del lote y espera a la próxima iteración de 30s
+        break;
       }
     }
   }
 
   finalizarRecorrido() {
-    if (!this.recorridoActivo?.id) return;
-    
+    if (!this.recorridoActivo?.id || this.procesando) return;
     this.procesando = true;
     this.http.post<any>(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/finalizar`, {}).subscribe({
       next: async () => {
         this.procesando = false;
-        this.detenerIntervalos(); // Cortar rastreo al finalizar
-        
-        const toast = await this.toastController.create({
-          message: '¡Recorrido finalizado exitosamente!',
-          duration: 3000, color: 'success', position: 'bottom', icon: 'checkmark-done-outline'
-        });
-        await toast.present();
+        this.detenerIntervalos();
+        await this.mostrarToast('¡Recorrido finalizado exitosamente!', 'success');
         this.router.navigate(['/rutas']);
       },
       error: async (err) => {
         this.procesando = false;
-        await this.mostrarError(err?.error?.message || 'No se pudo finalizar el recorrido');
-      }
+        await this.mostrarToast(err?.error?.message || 'No se pudo finalizar el recorrido', 'danger');
+      },
     });
+  }
+
+  volverARutas() {
+    this.router.navigate(['/rutas']);
   }
 
   formatearHora(timestamp: string): string {
     if (!timestamp) return 'No registrada';
     try {
-      const date = new Date(timestamp);
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      return timestamp;
-    }
+      return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch { return timestamp; }
   }
 
-  async mostrarError(mensaje: string) {
+  async mostrarToast(mensaje: string, color: string) {
     const toast = await this.toastController.create({
-      message: mensaje,
-      duration: 4000,
-      color: 'danger',
-      position: 'bottom'
+      message: mensaje, duration: 4000, color, position: 'bottom',
     });
     await toast.present();
   }
