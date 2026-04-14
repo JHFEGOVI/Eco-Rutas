@@ -2,12 +2,16 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    path: '',
+    redirectTo: 'rutas',
+    pathMatch: 'full'
   },
   {
-    path: '',
-    redirectTo: 'home',
-    pathMatch: 'full',
+    path: 'rutas',
+    loadComponent: () => import('./paginas/rutas/rutas.pagina').then(m => m.RutasCiudadanoPagina)
   },
+  {
+    path: 'mapa/:id',
+    loadComponent: () => import('./paginas/mapa/mapa.pagina').then(m => m.MapaCiudadanoPagina)
+  }
 ];
