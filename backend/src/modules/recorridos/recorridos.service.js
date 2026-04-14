@@ -52,14 +52,15 @@ const iniciarRecorrido = async (conductorId) => {
 
   // 5. Intenta sincronizar con la API externa (si falla, no bloquea el flujo principal)
   try {
-    const usuarioQuery = await pool.query('SELECT external_perfil_id FROM usuarios WHERE id = $1', [conductorId]);
-    const perfilIdExterno = usuarioQuery.rows[0]?.external_perfil_id;
-    
-    if (perfilIdExterno) {
+    // Traer los external_id de la ruta y el vehículo asignados
+    const rutaQuery = await pool.query('SELECT external_id FROM rutas WHERE id = $1', [asignacion.ruta_id]);
+    const rutaExternalId = rutaQuery.rows[0]?.external_id;
+    const vehiculoExternalId = vehiculo.external_id;
+
+    if (rutaExternalId && vehiculoExternalId) {
       const idExterno = await crearRecorridoExterno({
-        ruta_id: asignacion.ruta_id, // Asumiendo que ruta_id local está mapeado igual o manejan uuid
-        vehiculo_id: vehiculo.external_id || vehiculo.id,
-        perfil_id: perfilIdExterno
+        ruta_external_id: rutaExternalId,
+        vehiculo_external_id: vehiculoExternalId
       });
 
       if (idExterno) {
@@ -162,13 +163,12 @@ const registrarPosicion = async (recorridoId, lat, lon, conductorId) => {
   );
   const posicion = insertPos.rows[0];
 
-  // Intentar sincronizar con la API externa si existe connection
-  if (recorrido.external_id && recorrido.external_perfil_id) {
+  // Intentar sincronizar con la API externa si el recorrido tiene external_id
+  if (recorrido.external_id) {
     const exito = await registrarPosicionExterna({
       recorridoExternalId: recorrido.external_id,
       lat,
-      lon,
-      perfilId: recorrido.external_perfil_id
+      lon
     });
 
     if (exito) {
