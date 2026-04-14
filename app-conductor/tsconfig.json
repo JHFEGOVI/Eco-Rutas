@@ -24,7 +24,6 @@
     "skipLibCheck": true,
     "useDefineForClassFields": false,
 
-    "ignoreDeprecations": "6.0"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

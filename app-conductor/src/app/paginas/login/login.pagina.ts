@@ -24,6 +24,7 @@ import { AuthServicio } from '../../servicios/auth.servicio';
 export class LoginPagina {
   formulario: FormGroup;
   cargando = false;
+  error = '';
 
   constructor(
     private fb: FormBuilder,
@@ -60,6 +61,7 @@ export class LoginPagina {
   }
 
   async mostrarError(mensaje: string) {
+    this.error = mensaje;
     const toast = await this.toastController.create({
       message: mensaje,
       duration: 4000,
