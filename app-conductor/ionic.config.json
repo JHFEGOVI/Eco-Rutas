@@ -1,5 +1,7 @@
 {
   "name": "ecorrutas-conductor",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular-standalone"
 }
