@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 require('./config/database');
@@ -12,6 +13,9 @@ const asignacionesRoutes = require('./modules/asignaciones/asignaciones.routes')
 const recorridosRoutes = require('./modules/recorridos/recorridos.routes');
 
 const app = express();
+
+// Compresión para respuestas más rápidas
+app.use(compression());
 
 // Configuración de Swagger
 const opcionesSwagger = {

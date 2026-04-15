@@ -125,6 +125,25 @@ CREATE INDEX idx_posiciones_recorrido ON posiciones (recorrido_id);
 CREATE INDEX idx_posiciones_geom ON posiciones USING GIST (geom);
 
 -- =============================================
+-- TABLA: password_reset_tokens
+-- Tokens temporales para restablecimiento de contraseña
+-- =============================================
+CREATE TABLE password_reset_tokens (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    usuario_id      UUID         NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    token           VARCHAR(255) NOT NULL UNIQUE,
+    expira_en       TIMESTAMPTZ  NOT NULL DEFAULT (NOW() + INTERVAL '1 hour'),
+    usado           BOOLEAN      NOT NULL DEFAULT false,
+    created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    -- Índice para búsqueda rápida por token
+    CONSTRAINT uq_token UNIQUE (token)
+);
+
+-- Índice para limpieza automática de tokens expirados
+CREATE INDEX idx_reset_tokens_expira ON password_reset_tokens (expira_en);
+CREATE INDEX idx_reset_tokens_usuario ON password_reset_tokens (usuario_id);
+
+-- =============================================
 -- DATOS INICIALES: admin por defecto
 -- Contraseña: cambiar en producción (hash bcrypt de "admin123")
 -- =============================================
