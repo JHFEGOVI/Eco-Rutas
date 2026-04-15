@@ -9,6 +9,7 @@ import {
 } from '@ionic/angular/standalone';
 import { AuthServicio } from '../../servicios/auth.servicio';
 import { environment } from '../../../environments/environment';
+import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-rutas',
@@ -322,6 +323,9 @@ export class RutasPagina implements OnInit, OnDestroy {
   nombreConductor = '';
   horaActual = '';
   private intervaloHora: any;
+  private intervaloRutas: any;
+  private usuarioSubscription: Subscription | null = null;
+  private conductorId: string | null = null;
 
   get totalPendientes()   { return this.rutas.filter(r => r.estado === 'pendiente').length; }
   get totalCompletadas()  { return this.rutas.filter(r => r.estado === 'completada').length; }
@@ -345,11 +349,33 @@ export class RutasPagina implements OnInit, OnDestroy {
     this.actualizarHora();
     this.intervaloHora = setInterval(() => this.actualizarHora(), 1000);
 
-    const usuario = await this.authServicio.obtenerUsuario();
-    this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
+    // Suscribirse a cambios del usuario para actualizar automáticamente
+    console.log('[Rutas] Suscribiéndose a cambios de usuario...');
+    this.usuarioSubscription = this.authServicio.usuario$.subscribe(usuario => {
+      console.log('[Rutas] Usuario actualizado en observable:', usuario?.nombre);
+      if (usuario) {
+        this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
+        console.log('[Rutas] Nombre del conductor actualizado:', this.nombreConductor);
+        this.conductorId = usuario.id;
+        this.cargarRutasAsignadas(usuario.id);
+      }
+    });
 
+    // Cargar usuario inicial y configurar sincronización de rutas
+    const usuario = await this.authServicio.obtenerUsuario();
     if (usuario?.id) {
-      this.cargarRutasAsignadas(usuario.id);
+      this.conductorId = usuario.id;
+      this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
+      // Las rutas ya se cargan por la suscripción a usuario$, no es necesario llamar aquí
+
+      // Iniciar sincronización automática de rutas cada 5 segundos
+      console.log('[Rutas] Iniciando sincronización automática de rutas cada 5s');
+      this.intervaloRutas = interval(5000).subscribe(() => {
+        if (this.conductorId) {
+          console.log('[Rutas] Sincronizando rutas...');
+          this.cargarRutasAsignadas(this.conductorId);
+        }
+      });
     } else {
       this.cargando = false;
     }
@@ -357,6 +383,13 @@ export class RutasPagina implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.intervaloHora) clearInterval(this.intervaloHora);
+    if (this.intervaloRutas) {
+      console.log('[Rutas] Deteniendo sincronización de rutas');
+      this.intervaloRutas.unsubscribe();
+    }
+    if (this.usuarioSubscription) {
+      this.usuarioSubscription.unsubscribe();
+    }
   }
 
   actualizarHora() {
@@ -366,6 +399,7 @@ export class RutasPagina implements OnInit, OnDestroy {
   }
 
   cargarRutasAsignadas(conductorId: string) {
+    if (!conductorId) return;
     this.cargando = true;
     this.http.get<any>(`${environment.apiUrl}/asignaciones/conductor/${conductorId}`).subscribe({
       next: (res) => {

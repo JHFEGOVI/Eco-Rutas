@@ -1,5 +1,6 @@
 const { Router } = require('express');
-const { loginController } = require('./auth.controller');
+const { loginController, obtenerUsuarioActualController } = require('./auth.controller');
+const auth = require('../../middleware/auth');
 
 const router = Router();
 
@@ -33,5 +34,24 @@ const router = Router();
  *         description: Usuario o contraseña incorrectos.
  */
 router.post('/login', loginController);
+
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Obtener datos del usuario autenticado
+ *     description: Retorna los datos actuales del usuario logueado.
+ *     tags: [Autenticación]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Datos del usuario.
+ *       401:
+ *         description: Token inválido o no proporcionado.
+ *       404:
+ *         description: Usuario no encontrado.
+ */
+router.get('/me', auth, obtenerUsuarioActualController);
 
 module.exports = router;

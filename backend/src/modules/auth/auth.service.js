@@ -2,6 +2,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const pool = require('../../config/database');
 
+// Columnas públicas del usuario (excluye password_hash)
+const CAMPOS_PUBLICOS = 'id, nombre, documento, email, username, rol, activo, external_perfil_id, created_at, updated_at';
+
 const login = async (username, password) => {
   const resultado = await pool.query(
     'SELECT * FROM usuarios WHERE username = $1 AND activo = true',
@@ -39,4 +42,19 @@ const login = async (username, password) => {
   };
 };
 
-module.exports = { login };
+const obtenerUsuarioActual = async (userId) => {
+  const resultado = await pool.query(
+    `SELECT ${CAMPOS_PUBLICOS} FROM usuarios WHERE id = $1`,
+    [userId]
+  );
+
+  if (!resultado.rows[0]) {
+    const error = new Error('Usuario no encontrado');
+    error.status = 404;
+    throw error;
+  }
+
+  return resultado.rows[0];
+};
+
+module.exports = { login, obtenerUsuarioActual };

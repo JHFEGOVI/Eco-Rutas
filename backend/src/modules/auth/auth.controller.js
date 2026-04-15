@@ -1,4 +1,4 @@
-const { login } = require('./auth.service');
+const { login, obtenerUsuarioActual } = require('./auth.service');
 
 const loginController = async (req, res, next) => {
   try {
@@ -19,4 +19,13 @@ const loginController = async (req, res, next) => {
   }
 };
 
-module.exports = { loginController };
+const obtenerUsuarioActualController = async (req, res, next) => {
+  try {
+    const usuario = await obtenerUsuarioActual(req.user.id);
+    res.status(200).json({ success: true, data: usuario });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { loginController, obtenerUsuarioActualController };
