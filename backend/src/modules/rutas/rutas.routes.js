@@ -40,7 +40,8 @@ router.get('/',       auth,                    obtenerTodasController);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *     responses:
  *       200:
  *         description: Datos de la ruta con coordenadas GeoJSON.
@@ -98,7 +99,8 @@ router.post('/',      auth, roles(['admin']),   crearController);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *     requestBody:
  *       content:
  *         application/json:
@@ -132,7 +134,8 @@ router.put('/:id',    auth, roles(['admin']),   actualizarController);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *     responses:
  *       200:
  *         description: Ruta desactivada.

@@ -27,7 +27,8 @@ const router = Router();
  *         name: conductorId
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *         description: ID del conductor.
  *     responses:
  *       200:
@@ -66,7 +67,8 @@ router.get('/',        auth, roles(['admin']), obtenerTodasController);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *     responses:
  *       200:
  *         description: Datos de la asignación.
@@ -92,11 +94,13 @@ router.get('/:id',     auth,                  obtenerPorIdController);
  *             required: [conductor_id, ruta_id, fecha]
  *             properties:
  *               conductor_id:
- *                 type: integer
- *                 example: 3
+ *                 type: string
+ *                 format: uuid
+ *                 example: "550e8400-e29b-41d4-a716-446655440000"
  *               ruta_id:
- *                 type: integer
- *                 example: 1
+ *                 type: string
+ *                 format: uuid
+ *                 example: "123e4567-e89b-12d3-a456-426614174000"
  *               fecha:
  *                 type: string
  *                 format: date
@@ -124,7 +128,8 @@ router.post('/',       auth, roles(['admin']), crearController);
  *         name: id
  *         required: true
  *         schema:
- *           type: integer
+ *           type: string
+ *           format: uuid
  *     requestBody:
  *       required: true
  *       content:
