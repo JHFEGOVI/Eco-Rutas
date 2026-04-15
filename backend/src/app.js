@@ -23,8 +23,8 @@ const opcionesSwagger = {
       version: '1.0.0',
     },
     servers: [
+      { url: 'https://srv1564743.hstgr.cloud', description: 'Servidor de producción' },
       { url: 'http://localhost:3000', description: 'Servidor de desarrollo' },
-      { url: 'http://72.62.168.15:3000', description: 'Servidor de producción' },
     ],
     components: {
       securitySchemes: {
