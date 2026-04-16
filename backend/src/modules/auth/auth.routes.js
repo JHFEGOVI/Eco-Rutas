@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const { loginController, obtenerUsuarioActualController, forgotPasswordController, resetPasswordController, adminResetPasswordController } = require('./auth.controller');
 const auth = require('../../middleware/auth');
+const roles = require('../../middleware/roles');
 
 const router = Router();
 
@@ -144,6 +145,6 @@ router.post('/reset-password', resetPasswordController);
  *       403:
  *         description: Usuario inactivo.
  */
-router.post('/admin-reset', adminResetPasswordController);
+router.post('/admin-reset', auth, roles(['admin']), adminResetPasswordController);
 
 module.exports = router;
