@@ -7,24 +7,19 @@ import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacito
 import { firstValueFrom } from 'rxjs';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
-  IonButton,
   IonSpinner,
+  IonButton,
   IonIcon,
   IonButtons,
   IonBackButton,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
   ToastController
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline } from 'ionicons/icons';
+import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, carSportOutline, timeOutline, mapOutline, cloudUploadOutline, wifiOutline, batteryChargingOutline } from 'ionicons/icons';
 
 const DB_NOMBRE = 'ecorrutas_offline';
 
@@ -35,126 +30,539 @@ const DB_NOMBRE = 'ecorrutas_offline';
     CommonModule,
     DecimalPipe,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardSubtitle,
-    IonCardContent,
-    IonButton,
     IonSpinner,
+    IonButton,
     IonIcon,
     IonButtons,
-    IonBackButton
+    IonBackButton,
+    IonHeader,
+    IonToolbar,
+    IonTitle
   ],
   template: `
-    <ion-header>
-      <ion-toolbar color="primary">
+    <ion-header class="ion-no-border">
+      <ion-toolbar class="header-transparente">
         <ion-buttons slot="start">
-          <ion-back-button defaultHref="/rutas"></ion-back-button>
+          <ion-back-button defaultHref="/rutas" text="Volver" class="btn-back-custom"></ion-back-button>
         </ion-buttons>
-        <ion-title>Recorrido Activo</ion-title>
+        <ion-title class="header-titulo">Recorrido Activo</ion-title>
+        <ion-buttons slot="end">
+          <div class="header-status">
+            <span class="status-dot"></span>
+            <span class="status-text">EN VIVO</span>
+          </div>
+        </ion-buttons>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content class="ion-padding fondo-oscuro">
+    <ion-content [scrollY]="true" class="fondo-recorrido">
+      
       @if (cargando) {
-        <div class="contenedor-centrado">
-          <ion-spinner name="crescent"></ion-spinner>
-          <p>Verificando estado del recorrido...</p>
+        <div class="centro-carga">
+          <ion-spinner name="crescent" class="spinner-verde"></ion-spinner>
+          <p class="cargando-txt">Verificando estado del recorrido...</p>
         </div>
       } @else {
         @if (!recorridoActivo) {
-          <div class="contenedor-centrado msg-vacio">
-            <ion-icon name="close-circle-outline" color="medium"></ion-icon>
-            <h2>No tienes un recorrido activo</h2>
-            <ion-button class="ion-margin-top" color="primary" routerLink="/rutas">
+          <div class="vacio-recorrido">
+            <div class="vacio-ico-recorrido">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+            </div>
+            <p class="vacio-txt-recorrido">No tienes un recorrido activo</p>
+            <p class="vacio-sub-recorrido">Inicia una ruta desde la pantalla principal</p>
+            <button class="btn-volver-inicio" routerLink="/rutas">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 4l-8 8h5v8h6v-8h5z"/>
+              </svg>
               Volver a mis rutas
-            </ion-button>
+            </button>
           </div>
         } @else {
-          <div class="contenedor-top">
-            <ion-card class="tarjeta-recorrido">
-              <ion-card-header>
-                <ion-card-subtitle>Información actual</ion-card-subtitle>
-                <ion-card-title>
-                  Ruta: {{ recorridoActivo.ruta_nombre || recorridoActivo.ruta_id }}
-                </ion-card-title>
-              </ion-card-header>
+          <div class="content-recorrido">
+            
+            <!-- Hero Section -->
+            <div class="hero-recorrido">
+              <div class="hero-icono">
+                <svg viewBox="0 0 24 24">
+                  <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                </svg>
+              </div>
+              <div class="hero-info">
+                <h1 class="hero-titulo">{{ recorridoActivo.ruta_nombre || 'Ruta ' + recorridoActivo.ruta_id }}</h1>
+                <p class="hero-subtitulo">{{ recorridoActivo.placa }} · {{ recorridoActivo.marca }}</p>
+              </div>
+            </div>
 
-              <ion-card-content>
-                <div class="info-row">
-                  <strong>Vehículo Asignado:</strong>
-                  <span class="placa-vehiculo">{{ recorridoActivo.placa }} - {{ recorridoActivo.marca }}</span>
+            <!-- Stats Cards -->
+            <div class="stats-grid-recorrido">
+              <div class="stat-card-recorrido">
+                <div class="stat-ico-recorrido hora">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
                 </div>
-                <div class="info-row">
-                  <strong>Hora de Inicio:</strong>
-                  <span>{{ formatearHora(recorridoActivo.timestamp_inicio) }}</span>
+                <div>
+                  <span class="stat-val-recorrido">{{ formatearHora(recorridoActivo.timestamp_inicio) }}</span>
+                  <span class="stat-lbl-recorrido">Hora de inicio</span>
                 </div>
+              </div>
+              <div class="stat-card-recorrido">
+                <div class="stat-ico-recorrido gps" [class.gps-activo]="coordenadas">
+                  <svg viewBox="0 0 24 24">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                  </svg>
+                </div>
+                <div>
+                  <span class="stat-val-recorrido">{{ coordenadas ? 'Activo' : 'Buscando...' }}</span>
+                  <span class="stat-lbl-recorrido">Estado GPS</span>
+                </div>
+              </div>
+            </div>
 
-                <div class="info-row gps-contenedor">
-                  <strong>Ubicación Actual:</strong>
-                  @if (coordenadas) {
-                    <span class="coords-activas">
-                      <ion-icon name="location-outline" color="success"></ion-icon>
-                      Lat: {{ coordenadas.lat | number:'1.4-4' }}, Lon: {{ coordenadas.lon | number:'1.4-4' }}
-                    </span>
-                  } @else {
-                    <span class="coords-buscando">
-                      <ion-spinner name="dots"></ion-spinner> Detectando satélites GPS...
-                    </span>
-                  }
-                </div>
-
-                @if (pendientesSQLite > 0) {
-                  <div class="info-row">
-                    <strong>Puntos offline pendientes:</strong>
-                    <span class="alerta-peligro">⚠️ {{ pendientesSQLite }} posiciones sin sincronizar</span>
+            <!-- Ubicación Actual -->
+            <div class="ubicacion-card">
+              <div class="ubicacion-header">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                </svg>
+                <span>Ubicación actual</span>
+              </div>
+              <div class="ubicacion-contenido">
+                @if (coordenadas) {
+                  <div class="coordenadas">
+                    <div class="coord-item">
+                      <span class="coord-lbl">Latitud</span>
+                      <span class="coord-val">{{ coordenadas.lat | number:'1.6-6' }}</span>
+                    </div>
+                    <div class="coord-item">
+                      <span class="coord-lbl">Longitud</span>
+                      <span class="coord-val">{{ coordenadas.lon | number:'1.6-6' }}</span>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="gps-buscando">
+                    <ion-spinner name="crescent" class="spinner-pequeno"></ion-spinner>
+                    <span>Detectando satélites GPS...</span>
                   </div>
                 }
-              </ion-card-content>
-            </ion-card>
-
-            <div class="contenedor-boton">
-              <ion-button
-                expand="block"
-                color="success"
-                (click)="finalizarRecorrido()"
-                [disabled]="procesando"
-                class="boton-finalizar"
-              >
-                @if (procesando) {
-                  <ion-spinner name="crescent"></ion-spinner>
-                } @else {
-                  <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
-                  Finalizar recorrido
-                }
-              </ion-button>
+              </div>
             </div>
+
+            <!-- Offline Pendientes -->
+            @if (pendientesSQLite > 0) {
+              <div class="alerta-offline">
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <div>
+                  <span class="alerta-titulo">{{ pendientesSQLite }} posiciones pendientes</span>
+                  <span class="alerta-sub">Se sincronizarán automáticamente</span>
+                </div>
+              </div>
+            }
+
+            <!-- Botón Finalizar -->
+            <button 
+              class="btn-finalizar"
+              (click)="finalizarRecorrido()"
+              [disabled]="procesando"
+            >
+              @if (procesando) {
+                <ion-spinner name="crescent" class="btn-spinner-blanco"></ion-spinner>
+                <span>Finalizando...</span>
+              } @else {
+                <svg viewBox="0 0 24 24">
+                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                </svg>
+                <span>Finalizar recorrido</span>
+              }
+            </button>
+
+            <!-- Footer Info -->
+            <div class="footer-recorrido">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+              </svg>
+              <span>Actualización automática cada 10 segundos</span>
+            </div>
+
           </div>
         }
       }
     </ion-content>
   `,
   styles: [`
-    .fondo-oscuro { --background: #121212; color: #e0e0e0; }
-    .contenedor-centrado { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; }
-    .msg-vacio h2 { color: #a0a0a0; font-size: 1.2rem; font-weight: 500; margin-top: 10px; }
-    .msg-vacio ion-icon { font-size: 4rem; margin-bottom: 5px; }
-    .contenedor-top { height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 20px; }
-    .tarjeta-recorrido { --background: #1e1e1e; --color: #e0e0e0; border-radius: 12px; margin: 0; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-    ion-card-title { font-size: 1.4rem; color: #ffffff; margin-top: 5px; }
-    .info-row { margin-bottom: 12px; font-size: 1rem; display: flex; flex-direction: column; gap: 4px; }
-    .info-row strong { color: #a0a0a0; font-size: 0.9rem; }
-    .placa-vehiculo { color: #4caf50; font-weight: 600; font-size: 1.1rem; }
-    .gps-contenedor { margin-top: 10px; padding-top: 10px; border-top: 1px solid #333; }
-    .coords-activas { color: #81c784; display: flex; align-items: center; gap: 5px; font-size: 1.05rem; }
-    .coords-buscando { color: #ffd54f; display: flex; align-items: center; gap: 5px; }
-    .alerta-peligro { color: #ff5252; font-size: 0.9rem; font-weight: 600; }
-    .contenedor-boton { margin-top: 30px; }
-    .boton-finalizar { --border-radius: 12px; box-shadow: 0 4px 10px rgba(46,125,50,0.4); height: 60px; font-size: 1.2rem; font-weight: bold; }
+    .fondo-recorrido {
+      --background: #f0f4f0;
+    }
+
+    /* Header Transparente */
+    .header-transparente {
+      --background: transparent;
+      --border-style: none;
+      padding-top: 8px;
+    }
+    .header-titulo {
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: #1e8c34;
+      text-align: center;
+    }
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(30,140,52,0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-right: 8px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #1e8c34;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+    .status-text {
+      font-size: 0.6rem;
+      font-weight: 800;
+      color: #1e8c34;
+      letter-spacing: 0.5px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    /* Carga */
+    .centro-carga {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 12px;
+    }
+    .spinner-verde {
+      --color: #1e8c34;
+    }
+    .cargando-txt {
+      font-size: 0.85rem;
+      color: #9e9e9e;
+    }
+
+    /* Vacío */
+    .vacio-recorrido {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 2rem;
+      text-align: center;
+    }
+    .vacio-ico-recorrido {
+      width: 80px;
+      height: 80px;
+      background: #e8f5e9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .vacio-ico-recorrido svg {
+      width: 40px;
+      height: 40px;
+      fill: #1e8c34;
+    }
+    .vacio-txt-recorrido {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #333;
+      margin: 0 0 8px;
+    }
+    .vacio-sub-recorrido {
+      font-size: 0.8rem;
+      color: #9e9e9e;
+      margin: 0 0 24px;
+    }
+    .btn-volver-inicio {
+      background: #1e8c34;
+      color: #fff;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 24px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .btn-volver-inicio svg {
+      width: 18px;
+      height: 18px;
+      fill: #fff;
+    }
+
+    /* Content */
+    .content-recorrido {
+      padding: 20px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* Hero Section */
+    .hero-recorrido {
+      background: linear-gradient(135deg, #1e8c34 0%, #156b27 100%);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .hero-icono {
+      width: 56px;
+      height: 56px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero-icono svg {
+      width: 32px;
+      height: 32px;
+      fill: #fff;
+    }
+    .hero-info {
+      flex: 1;
+    }
+    .hero-titulo {
+      margin: 0 0 4px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+    .hero-subtitulo {
+      margin: 0;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Stats Grid */
+    .stats-grid-recorrido {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .stat-card-recorrido {
+      background: #fff;
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid #eef2ee;
+    }
+    .stat-ico-recorrido {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .stat-ico-recorrido svg {
+      width: 22px;
+      height: 22px;
+    }
+    .stat-ico-recorrido.hora {
+      background: #e3f2fd;
+    }
+    .stat-ico-recorrido.hora svg {
+      fill: #1565c0;
+    }
+    .stat-ico-recorrido.gps {
+      background: #fff3e0;
+    }
+    .stat-ico-recorrido.gps svg {
+      fill: #e65100;
+    }
+    .stat-ico-recorrido.gps.gps-activo {
+      background: #e8f5e9;
+    }
+    .stat-ico-recorrido.gps.gps-activo svg {
+      fill: #1e8c34;
+    }
+    .stat-val-recorrido {
+      display: block;
+      font-size: 1rem;
+      font-weight: 900;
+      color: #1a2e1a;
+      line-height: 1.2;
+    }
+    .stat-lbl-recorrido {
+      font-size: 0.6rem;
+      color: #9e9e9e;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Ubicación Card */
+    .ubicacion-card {
+      background: #fff;
+      border-radius: 18px;
+      border: 1px solid #eef2ee;
+      overflow: hidden;
+    }
+    .ubicacion-header {
+      background: #f8faf8;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #eef2ee;
+    }
+    .ubicacion-header svg {
+      width: 18px;
+      height: 18px;
+      fill: #1e8c34;
+    }
+    .ubicacion-header span {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #1a2e1a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .ubicacion-contenido {
+      padding: 16px;
+    }
+    .coordenadas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .coord-item {
+      background: #f8faf8;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+    }
+    .coord-lbl {
+      display: block;
+      font-size: 0.6rem;
+      color: #9e9e9e;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .coord-val {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #1a2e1a;
+      font-family: monospace;
+    }
+    .gps-buscando {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+      color: #e65100;
+      font-size: 0.8rem;
+    }
+    .spinner-pequeno {
+      --color: #e65100;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Alerta Offline */
+    .alerta-offline {
+      background: #fff3e0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-left: 4px solid #e65100;
+    }
+    .alerta-offline svg {
+      width: 24px;
+      height: 24px;
+      fill: #e65100;
+    }
+    .alerta-titulo {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #e65100;
+    }
+    .alerta-sub {
+      display: block;
+      font-size: 0.65rem;
+      color: #9e9e9e;
+    }
+
+    /* Botón Finalizar */
+    .btn-finalizar {
+      width: 100%;
+      height: 52px;
+      background: #1e8c34;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      box-shadow: 0 4px 14px rgba(30,140,52,0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-finalizar:active {
+      transform: scale(0.98);
+    }
+    .btn-finalizar:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .btn-finalizar svg {
+      width: 20px;
+      height: 20px;
+      fill: #fff;
+    }
+    .btn-spinner-blanco {
+      --color: #fff;
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Footer */
+    .footer-recorrido {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding-top: 16px;
+      font-size: 0.6rem;
+      color: #bdbdbd;
+    }
+    .footer-recorrido svg {
+      width: 12px;
+      height: 12px;
+      fill: #bdbdbd;
+    }
   `]
 })
 export class RecorridoPagina implements OnInit, OnDestroy {
@@ -178,7 +586,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline });
+    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, carSportOutline, timeOutline, mapOutline, cloudUploadOutline, wifiOutline, batteryChargingOutline });
   }
 
   async ngOnInit() {
@@ -268,11 +676,9 @@ export class RecorridoPagina implements OnInit, OnDestroy {
               lon: pos.lon
             })
           );
-          // Eliminar de SQLite al sincronizar exitosamente
           await this.db.run(`DELETE FROM posiciones_pendientes WHERE id = ?`, [pos.id]);
           await this.actualizarContadorPendientes();
         } catch {
-          // Incrementar contador de intentos y parar el lote
           await this.db.run(
             `UPDATE posiciones_pendientes SET intentos = intentos + 1 WHERE id = ?`,
             [pos.id]
@@ -346,7 +752,6 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos).subscribe({
       next: () => {},
       error: () => {
-        // Red caída: guardar en SQLite en lugar de array en memoria
         this.guardarPosicionOffline(pos.lat, pos.lon);
       }
     });
@@ -361,7 +766,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
         this.detenerIntervalos();
         const toast = await this.toastController.create({
           message: '¡Recorrido finalizado exitosamente!',
-          duration: 3000, color: 'success', position: 'bottom', icon: 'checkmark-done-outline'
+          duration: 3000, color: 'success', position: 'bottom'
         });
         await toast.present();
         this.router.navigate(['/rutas']);
