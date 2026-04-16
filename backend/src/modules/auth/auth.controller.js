@@ -1,4 +1,4 @@
-const { login, obtenerUsuarioActual, solicitarResetPassword, resetearPassword, adminResetPasswordDirecto } = require('./auth.service');
+const { login, obtenerUsuarioActual, adminResetPasswordDirecto } = require('./auth.service');
 
 const loginController = async (req, res, next) => {
   try {
@@ -28,59 +28,6 @@ const obtenerUsuarioActualController = async (req, res, next) => {
   }
 };
 
-/**
- * Controlador para solicitar restablecimiento de contraseña.
- * POST /auth/forgot-password
- */
-const forgotPasswordController = async (req, res, next) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({
-        success: false,
-        message: 'El email es requerido',
-      });
-    }
-
-    const resultado = await solicitarResetPassword(email);
-
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje,
-      // Solo en desarrollo incluimos el token
-      ...(resultado.token && { data: { token: resultado.token, resetUrl: resultado.resetUrl } })
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * Controlador para restablecer contraseña con token.
- * POST /auth/reset-password
- */
-const resetPasswordController = async (req, res, next) => {
-  try {
-    const { token, password } = req.body;
-
-    if (!token || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'El token y la nueva contraseña son requeridos',
-      });
-    }
-
-    const resultado = await resetearPassword(token, password);
-
-    res.status(200).json({
-      success: true,
-      message: resultado.mensaje
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 /**
  * Controlador para restablecer contraseña de admin directamente con username.
@@ -132,7 +79,5 @@ const adminResetPasswordController = async (req, res, next) => {
 module.exports = {
   loginController,
   obtenerUsuarioActualController,
-  forgotPasswordController,
-  resetPasswordController,
   adminResetPasswordController
 };

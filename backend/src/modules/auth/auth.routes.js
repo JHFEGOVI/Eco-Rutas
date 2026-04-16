@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { loginController, obtenerUsuarioActualController, forgotPasswordController, resetPasswordController, adminResetPasswordController } = require('./auth.controller');
+const { loginController, obtenerUsuarioActualController, adminResetPasswordController } = require('./auth.controller');
 const auth = require('../../middleware/auth');
 const roles = require('../../middleware/roles');
 
@@ -55,60 +55,6 @@ router.post('/login', loginController);
  */
 router.get('/me', auth, obtenerUsuarioActualController);
 
-/**
- * @swagger
- * /api/auth/forgot-password:
- *   post:
- *     summary: Solicitar restablecimiento de contraseña
- *     description: Genera un token de restablecimiento y envía email (en desarrollo lo loguea).
- *     tags: [Autenticación]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [email]
- *             properties:
- *               email:
- *                 type: string
- *                 example: "admin@ecorutas.com"
- *     responses:
- *       200:
- *         description: Email de recuperación enviado (o logueado en desarrollo).
- *       400:
- *         description: Email no proporcionado.
- */
-router.post('/forgot-password', forgotPasswordController);
-
-/**
- * @swagger
- * /api/auth/reset-password:
- *   post:
- *     summary: Restablecer contraseña
- *     description: Usa el token de recuperación para establecer una nueva contraseña.
- *     tags: [Autenticación]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [token, password]
- *             properties:
- *               token:
- *                 type: string
- *                 example: "abc123..."
- *               password:
- *                 type: string
- *                 example: "nuevaContrasena123"
- *     responses:
- *       200:
- *         description: Contraseña actualizada exitosamente.
- *       400:
- *         description: Token inválido, expirado o contraseña no cumple requisitos.
- */
-router.post('/reset-password', resetPasswordController);
 
 /**
  * @swagger
