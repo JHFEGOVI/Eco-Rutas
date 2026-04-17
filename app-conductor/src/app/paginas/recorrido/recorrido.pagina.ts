@@ -8,8 +8,6 @@ import { firstValueFrom } from 'rxjs';
 import {
   IonContent,
   IonSpinner,
-  IonButton,
-  IonIcon,
   IonButtons,
   IonBackButton,
   IonHeader,
@@ -31,8 +29,6 @@ const DB_NOMBRE = 'ecorrutas_offline';
     DecimalPipe,
     IonContent,
     IonSpinner,
-    IonButton,
-    IonIcon,
     IonButtons,
     IonBackButton,
     IonHeader,

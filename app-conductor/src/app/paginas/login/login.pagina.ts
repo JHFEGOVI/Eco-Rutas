@@ -50,9 +50,6 @@ export class LoginPagina {
     this.authServicio.login(usuario, contrasena).subscribe({
       next: () => {
         this.cargando = false;
-        console.log('[Login] Login exitoso, iniciando sincronización...');
-        // Iniciar sincronización automática de datos del usuario cada 2 segundos
-        this.authServicio.iniciarSincronizacionAutomatica(2);
         this.router.navigate(['/rutas']);
       },
       error: async (err) => {

@@ -6,7 +6,6 @@ import { HttpClient } from '@angular/common/http';
 import * as L from 'leaflet';
 import {
   IonContent,
-  IonButtons,
   IonSpinner,
   ToastController
 } from '@ionic/angular/standalone';
@@ -37,7 +36,6 @@ const BOUNDS_BUENAVENTURA = L.latLngBounds(
   imports: [
     CommonModule,
     IonContent,
-    IonButtons,
     IonSpinner
   ],
   template: `

@@ -350,12 +350,9 @@ export class RutasPagina implements OnInit, OnDestroy {
     this.intervaloHora = setInterval(() => this.actualizarHora(), 1000);
 
     // Suscribirse a cambios del usuario para actualizar automáticamente
-    console.log('[Rutas] Suscribiéndose a cambios de usuario...');
     this.usuarioSubscription = this.authServicio.usuario$.subscribe(usuario => {
-      console.log('[Rutas] Usuario actualizado en observable:', usuario?.nombre);
       if (usuario) {
         this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
-        console.log('[Rutas] Nombre del conductor actualizado:', this.nombreConductor);
         this.conductorId = usuario.id;
         this.cargarRutasAsignadas(usuario.id);
       }
@@ -368,11 +365,9 @@ export class RutasPagina implements OnInit, OnDestroy {
       this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
       // Las rutas ya se cargan por la suscripción a usuario$, no es necesario llamar aquí
 
-      // Iniciar sincronización automática de rutas cada 5 segundos
-      console.log('[Rutas] Iniciando sincronización automática de rutas cada 5s');
-      this.intervaloRutas = interval(5000).subscribe(() => {
+      // Iniciar sincronización automática de rutas cada 15 segundos
+      this.intervaloRutas = interval(15000).subscribe(() => {
         if (this.conductorId) {
-          console.log('[Rutas] Sincronizando rutas...');
           this.cargarRutasAsignadas(this.conductorId);
         }
       });
@@ -381,15 +376,18 @@ export class RutasPagina implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
+  limpiarIntervalos() {
     if (this.intervaloHora) clearInterval(this.intervaloHora);
     if (this.intervaloRutas) {
-      console.log('[Rutas] Deteniendo sincronización de rutas');
       this.intervaloRutas.unsubscribe();
     }
     if (this.usuarioSubscription) {
       this.usuarioSubscription.unsubscribe();
     }
+  }
+
+  ngOnDestroy() {
+    this.limpiarIntervalos();
   }
 
   actualizarHora() {
@@ -398,8 +396,15 @@ export class RutasPagina implements OnInit, OnDestroy {
     });
   }
 
-  cargarRutasAsignadas(conductorId: string) {
+  async cargarRutasAsignadas(conductorId: string) {
     if (!conductorId) return;
+
+    const autenticado = await this.authServicio.estaAutenticado();
+    if (!autenticado) {
+      this.limpiarIntervalos();
+      return;
+    }
+
     this.cargando = true;
     this.http.get<any>(`${environment.apiUrl}/asignaciones/conductor/${conductorId}`).subscribe({
       next: (res) => {
