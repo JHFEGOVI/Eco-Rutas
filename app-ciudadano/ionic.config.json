@@ -1,5 +1,7 @@
 {
   "name": "ecorrutas-ciudadano",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular-standalone"
 }
