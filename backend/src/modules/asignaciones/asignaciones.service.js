@@ -95,6 +95,15 @@ const cambiarEstado = async (id, estado) => {
 
   await obtenerPorId(id); // lanza 404 si no existe
 
+  if (estado === 'cancelada') {
+    await pool.query(
+      `UPDATE recorridos
+       SET estado = 'suspendido', timestamp_fin = NOW(), updated_at = NOW()
+       WHERE asignacion_id = $1 AND estado = 'en_curso'`,
+      [id]
+    );
+  }
+
   const resultado = await pool.query(
     `UPDATE asignaciones SET estado = $1, updated_at = NOW()
      WHERE id = $2
