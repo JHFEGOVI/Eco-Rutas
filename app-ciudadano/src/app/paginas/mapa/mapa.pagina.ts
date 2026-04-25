@@ -387,7 +387,7 @@ export class MapaCiudadanoPagina implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.inicializarMapa();
       this.cargarDatos();
-      this.intervalo = setInterval(() => this.cargarDatos(), 10000);
+      this.intervalo = setInterval(() => this.cargarDatos(), 5000);
     }, 300);
   }
 

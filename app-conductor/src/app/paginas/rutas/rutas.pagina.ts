@@ -366,7 +366,7 @@ export class RutasPagina implements OnInit, OnDestroy {
       // Las rutas ya se cargan por la suscripción a usuario$, no es necesario llamar aquí
 
       // Iniciar sincronización automática de rutas cada 15 segundos
-      this.intervaloRutas = interval(15000).subscribe(() => {
+      this.intervaloRutas = interval(10000).subscribe(() => {
         if (this.conductorId) {
           this.cargarRutasAsignadas(this.conductorId);
         }
