@@ -3,7 +3,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Geolocation } from '@capacitor/geolocation';
-import { registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 import type { BackgroundGeolocationPlugin, Location, CallbackError } from '@capacitor-community/background-geolocation';
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
@@ -168,6 +168,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
 
   coordenadas: { lat: number; lon: number } | null = null;
   private watcherId: string | null = null;
+  intervaloGps: any;
   intervaloReintentos: any;
   pendientesSQLite = 0;
 
@@ -305,13 +306,15 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     }
 
     // Solicitar también permisos de background location
-    try {
-      await BackgroundGeolocation.addWatcher(
-        { requestPermissions: true, stale: false },
-        () => {}
-      ).then(id => BackgroundGeolocation.removeWatcher({ id }));
-    } catch {
-      console.warn('Background geolocation: no se pudo pre-solicitar permisos');
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await BackgroundGeolocation.addWatcher(
+          { requestPermissions: true, stale: false },
+          () => {}
+        ).then(id => BackgroundGeolocation.removeWatcher({ id }));
+      } catch {
+        console.warn('Background geolocation: no se pudo pre-solicitar permisos');
+      }
     }
   }
 
@@ -334,32 +337,50 @@ export class RecorridoPagina implements OnInit, OnDestroy {
   }
 
   async iniciarTrackingGps() {
-    this.watcherId = await BackgroundGeolocation.addWatcher(
-      {
-        backgroundMessage: 'EcoRutas está registrando tu recorrido',
-        backgroundTitle: 'Recorrido activo',
-        requestPermissions: true,
-        stale: false,
-        distanceFilter: 5
-      },
-      (location: Location | undefined, error: CallbackError | undefined) => {
-        if (error || !location) return;
-        const pos = { lat: location.latitude, lon: location.longitude };
-        this.coordenadas = pos;
-        this.enviarPosicion(pos);
-      }
-    );
+    if (Capacitor.isNativePlatform()) {
+      this.watcherId = await BackgroundGeolocation.addWatcher(
+        {
+          backgroundMessage: 'EcoRutas está registrando tu recorrido',
+          backgroundTitle: 'Recorrido activo',
+          requestPermissions: true,
+          stale: false,
+          distanceFilter: 5
+        },
+        (location: Location | undefined, error: CallbackError | undefined) => {
+          if (error || !location) return;
+          const pos = { lat: location.latitude, lon: location.longitude };
+          this.coordenadas = pos;
+          this.enviarPosicion(pos);
+        }
+      );
+    } else {
+      this.tomarPosicion();
+      this.intervaloGps = setInterval(() => this.tomarPosicion(), 10000);
+    }
     this.intervaloReintentos = setInterval(() => this.subirPendientesSQLite(), 30000);
   }
 
   async detenerTrackingYIntervalos() {
-    if (this.watcherId) {
-      await BackgroundGeolocation.removeWatcher({ id: this.watcherId });
-      this.watcherId = null;
+    if (Capacitor.isNativePlatform()) {
+      if (this.watcherId) {
+        await BackgroundGeolocation.removeWatcher({ id: this.watcherId });
+        this.watcherId = null;
+      }
+    } else {
+      if (this.intervaloGps) clearInterval(this.intervaloGps);
     }
     if (this.intervaloReintentos) clearInterval(this.intervaloReintentos);
   }
 
+  async tomarPosicion() {
+    try {
+      const p = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+      this.coordenadas = { lat: p.coords.latitude, lon: p.coords.longitude };
+      this.enviarPosicion(this.coordenadas);
+    } catch (err) {
+      console.error('Fallo capturando GPS:', err);
+    }
+  }
 
   enviarPosicion(pos: { lat: number; lon: number }) {
     if (!this.recorridoActivo?.id) return;

@@ -10,6 +10,8 @@ import {
   ToastController
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
+import { SocketServicio } from '../../servicios/socket.servicio';
+import { Subscription } from 'rxjs';
 
 // Corrección de íconos de Leaflet
 const iconUrl = 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png';
@@ -368,7 +370,7 @@ export class MapaCiudadanoPagina implements OnInit, AfterViewInit, OnDestroy {
   private mapa: L.Map | null = null;
   private marcadorCamion: L.Marker | null = null;
   private polilinaRuta: L.Polyline | null = null;
-  private intervalo: any;
+  private subSocket: Subscription | null = null;
   private mapaListo = false;
 
   constructor(
@@ -376,7 +378,8 @@ export class MapaCiudadanoPagina implements OnInit, AfterViewInit, OnDestroy {
     private router: Router,
     private location: Location,
     private http: HttpClient,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private socketServicio: SocketServicio
   ) {}
 
   ngOnInit() {
@@ -387,12 +390,31 @@ export class MapaCiudadanoPagina implements OnInit, AfterViewInit, OnDestroy {
     setTimeout(() => {
       this.inicializarMapa();
       this.cargarDatos();
-      this.intervalo = setInterval(() => this.cargarDatos(), 5000);
+
+      // Escuchar actualizaciones de posición en tiempo real
+      this.subSocket = this.socketServicio.escucharEvento<any>('posicion_actualizada')
+        .subscribe(datos => {
+          if (datos.recorrido_id !== this.recorridoId) return;
+          // Actualizar la hora de última actualización
+          this.ultimaActualizacion = new Date().toLocaleTimeString('es-CO', {
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+          });
+          // Mover el marcador directamente sin petición HTTP
+          if (this.mapaListo && this.mapa) {
+            const pos: L.LatLngExpression = [datos.lat, datos.lon];
+            if (this.marcadorCamion) {
+              this.marcadorCamion.setLatLng(pos);
+            } else if (this.recorrido) {
+              this.actualizarMarcador(this.recorrido);
+            }
+          }
+        });
     }, 300);
   }
 
   ngOnDestroy() {
-    if (this.intervalo) clearInterval(this.intervalo);
+    if (this.subSocket) this.subSocket.unsubscribe();
+    this.socketServicio.desconectar();
     if (this.mapa) {
       this.mapa.remove();
       this.mapa = null;

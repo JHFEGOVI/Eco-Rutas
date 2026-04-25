@@ -1,5 +1,6 @@
 const pool = require('../../config/database');
 const { crearRecorridoExterno, registrarPosicionExterna } = require('../../services/externalApiService');
+const { emitirEvento } = require('../../config/socket');
 
 const iniciarRecorrido = async (conductorId) => {
   // 1. Busca las asignaciones del conductor para hoy con estado 'pendiente'
@@ -85,6 +86,8 @@ const iniciarRecorrido = async (conductorId) => {
     [recorrido.id]
   );
 
+  emitirEvento('recorrido_iniciado', { recorrido_id: resultado.rows[0].id });
+
   return resultado.rows[0];
 };
 
@@ -119,6 +122,8 @@ const finalizarRecorrido = async (recorridoId, conductorId) => {
     `UPDATE asignaciones SET estado = 'completada', updated_at = NOW() WHERE id = $1`,
     [recorrido.asignacion_id]
   );
+
+  emitirEvento('recorrido_finalizado', { recorrido_id: recorridoId });
 
   return updateRecorrido.rows[0];
 };
@@ -179,6 +184,13 @@ const registrarPosicion = async (recorridoId, lat, lon, conductorId) => {
       posicion.sincronizado_api_ext = true;
     }
   }
+
+  emitirEvento('posicion_actualizada', {
+    recorrido_id: recorridoId,
+    lat,
+    lon,
+    timestamp_captura: posicion.timestamp_captura
+  });
 
   return posicion;
 };

@@ -10,6 +10,8 @@ import {
   IonRefresherContent
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
+import { SocketServicio } from '../../servicios/socket.servicio';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-rutas-ciudadano',
@@ -107,7 +109,7 @@ import { environment } from '../../../environments/environment';
               <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
               EN VIVO
             </span>
-            <span class="sec-refresco">Actualiza cada 30s</span>
+            <span class="sec-refresco">Tiempo real 🔴</span>
           </div>
 
           @for (recorrido of recorridos; track recorrido.id) {
@@ -536,12 +538,13 @@ export class RutasCiudadanoPagina implements OnInit, OnDestroy {
   recorridos: any[] = [];
   cargandoPrimera = true;
   ultimaActualizacion = '';
-  private intervalo: any;
+  private suscripciones: Subscription[] = [];
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private socketServicio: SocketServicio
   ) {}
 
   get rutasUnicas(): number {
@@ -559,11 +562,19 @@ export class RutasCiudadanoPagina implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.cargarRecorridos();
-    this.intervalo = setInterval(() => this.cargarRecorridos(), 30000);
+
+    // Recargar la lista cuando el backend emite que un recorrido cambió de estado
+    const sub1 = this.socketServicio.escucharEvento('recorrido_iniciado')
+      .subscribe(() => this.cargarRecorridos());
+
+    const sub2 = this.socketServicio.escucharEvento('recorrido_finalizado')
+      .subscribe(() => this.cargarRecorridos());
+
+    this.suscripciones.push(sub1, sub2);
   }
 
   ngOnDestroy() {
-    if (this.intervalo) clearInterval(this.intervalo);
+    this.suscripciones.forEach(s => s.unsubscribe());
   }
 
   cargarRecorridos() {
