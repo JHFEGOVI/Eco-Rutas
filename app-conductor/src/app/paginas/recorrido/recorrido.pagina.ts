@@ -355,7 +355,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
       );
     } else {
       this.tomarPosicion();
-      this.intervaloGps = setInterval(() => this.tomarPosicion(), 10000);
+      this.intervaloGps = setInterval(() => this.tomarPosicion(), 5000);
     }
     this.intervaloReintentos = setInterval(() => this.subirPendientesSQLite(), 30000);
   }

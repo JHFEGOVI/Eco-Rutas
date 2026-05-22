@@ -10,8 +10,6 @@ import {
   IonRefresherContent
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
-import { SocketServicio } from '../../servicios/socket.servicio';
-import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-rutas-ciudadano',
@@ -538,13 +536,12 @@ export class RutasCiudadanoPagina implements OnInit, OnDestroy {
   recorridos: any[] = [];
   cargandoPrimera = true;
   ultimaActualizacion = '';
-  private suscripciones: Subscription[] = [];
+  private intervaloActualizacion: any = null;
 
   constructor(
     private http: HttpClient,
     private router: Router,
-    private toastController: ToastController,
-    private socketServicio: SocketServicio
+    private toastController: ToastController
   ) {}
 
   get rutasUnicas(): number {
@@ -563,18 +560,16 @@ export class RutasCiudadanoPagina implements OnInit, OnDestroy {
   ngOnInit() {
     this.cargarRecorridos();
 
-    // Recargar la lista cuando el backend emite que un recorrido cambió de estado
-    const sub1 = this.socketServicio.escucharEvento('recorrido_iniciado')
-      .subscribe(() => this.cargarRecorridos());
-
-    const sub2 = this.socketServicio.escucharEvento('recorrido_finalizado')
-      .subscribe(() => this.cargarRecorridos());
-
-    this.suscripciones.push(sub1, sub2);
+    // Refresco cada 10 segundos
+    this.intervaloActualizacion = setInterval(() => {
+      this.cargarRecorridos();
+    }, 10000);
   }
 
   ngOnDestroy() {
-    this.suscripciones.forEach(s => s.unsubscribe());
+    if (this.intervaloActualizacion) {
+      clearInterval(this.intervaloActualizacion);
+    }
   }
 
   cargarRecorridos() {
