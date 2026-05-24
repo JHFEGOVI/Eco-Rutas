@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Geolocation } from '@capacitor/geolocation';
 import { Capacitor, registerPlugin } from '@capacitor/core';
+import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import type { BackgroundGeolocationPlugin, Location, CallbackError } from '@capacitor-community/background-geolocation';
 const BackgroundGeolocation = registerPlugin<BackgroundGeolocationPlugin>('BackgroundGeolocation');
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection } from '@capacitor-community/sqlite';
@@ -23,11 +24,13 @@ import {
   IonIcon,
   IonButtons,
   IonBackButton,
+  IonFab,
+  IonFabButton,
   ToastController
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline } from 'ionicons/icons';
+import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, flagOutline } from 'ionicons/icons';
 
 const DB_NOMBRE = 'ecorrutas_offline';
 
@@ -50,7 +53,9 @@ const DB_NOMBRE = 'ecorrutas_offline';
     IonSpinner,
     IonIcon,
     IonButtons,
-    IonBackButton
+    IonBackButton,
+    IonFab,
+    IonFabButton
   ],
   template: `
     <ion-header>
@@ -139,6 +144,19 @@ const DB_NOMBRE = 'ecorrutas_offline';
           </div>
         }
       }
+
+      <!-- Botón flotante de reporte de foto (solo si hay recorrido activo) -->
+      @if (recorridoActivo) {
+        <ion-fab vertical="bottom" horizontal="end" slot="fixed" class="fab-reporte">
+          <ion-fab-button color="warning" (click)="tomarFotoReporte()" [disabled]="subiendoFoto">
+            @if (subiendoFoto) {
+              <ion-spinner name="crescent"></ion-spinner>
+            } @else {
+              <ion-icon name="flag-outline"></ion-icon>
+            }
+          </ion-fab-button>
+        </ion-fab>
+      }
     </ion-content>
   `,
   styles: [`
@@ -158,11 +176,13 @@ const DB_NOMBRE = 'ecorrutas_offline';
     .alerta-peligro { color: #ff5252; font-size: 0.9rem; font-weight: 600; }
     .contenedor-boton { margin-top: 30px; }
     .boton-finalizar { --border-radius: 12px; box-shadow: 0 4px 10px rgba(46,125,50,0.4); height: 60px; font-size: 1.2rem; font-weight: bold; }
+    .fab-reporte { margin-bottom: 20px; margin-right: 4px; }
   `]
 })
 export class RecorridoPagina implements OnInit, OnDestroy {
   cargando = true;
   procesando = false;
+  subiendoFoto = false;
   recorridoActivo: any = null;
   recorridoIdUrl: string | null = null;
 
@@ -171,6 +191,10 @@ export class RecorridoPagina implements OnInit, OnDestroy {
   intervaloGps: any;
   intervaloReintentos: any;
   pendientesSQLite = 0;
+
+  // Última posición registrada (para asociar fotos)
+  ultimaPosicionId: string | null = null;
+  ultimaPosicionExternalId: string | null = null;
 
   // Conexión SQLite
   private sqlite = new SQLiteConnection(CapacitorSQLite);
@@ -182,7 +206,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     private router: Router,
     private toastController: ToastController
   ) {
-    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline });
+    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, flagOutline });
   }
 
   async ngOnInit() {
@@ -384,13 +408,71 @@ export class RecorridoPagina implements OnInit, OnDestroy {
 
   enviarPosicion(pos: { lat: number; lon: number }) {
     if (!this.recorridoActivo?.id) return;
-    this.http.post(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos).subscribe({
-      next: () => { },
+    this.http.post<any>(`${environment.apiUrl}/recorridos/${this.recorridoActivo.id}/posiciones`, pos).subscribe({
+      next: (res) => {
+        // Guardar los ids de la última posición para asociar fotos de reporte
+        if (res?.data?.id) {
+          this.ultimaPosicionId = res.data.id;
+          this.ultimaPosicionExternalId = res.data.external_id || null;
+        }
+      },
       error: () => {
         // Red caída: guardar en SQLite en lugar de array en memoria
         this.guardarPosicionOffline(pos.lat, pos.lon);
       }
     });
+  }
+
+  async tomarFotoReporte() {
+    if (!this.recorridoActivo?.id || this.subiendoFoto) return;
+
+    try {
+      const foto = await Camera.getPhoto({
+        quality: 70,
+        resultType: CameraResultType.Base64,
+        source: CameraSource.Camera
+      });
+
+      if (!foto.base64String) {
+        await this.mostrarError('No se pudo obtener la imagen de la cámara');
+        return;
+      }
+
+      if (!this.ultimaPosicionId) {
+        await this.mostrarError('Espera a que se registre al menos una posición GPS antes de tomar una foto');
+        return;
+      }
+
+      this.subiendoFoto = true;
+      const foto_base64 = `data:image/jpeg;base64,${foto.base64String}`;
+
+      this.http.post<any>(`${environment.apiUrl}/reportes`, {
+        recorrido_id: this.recorridoActivo.id,
+        posicion_id: this.ultimaPosicionId,
+        foto_base64
+      }).subscribe({
+        next: async () => {
+          this.subiendoFoto = false;
+          const toast = await this.toastController.create({
+            message: '📸 Foto de reporte enviada correctamente',
+            duration: 3000,
+            color: 'success',
+            position: 'bottom'
+          });
+          await toast.present();
+        },
+        error: async (err) => {
+          this.subiendoFoto = false;
+          await this.mostrarError(err?.error?.message || 'No se pudo enviar la foto de reporte');
+        }
+      });
+    } catch (err: any) {
+      // El usuario canceló la cámara — no mostrar error
+      if (err?.message?.includes('cancelled') || err?.message?.includes('canceled') || err?.message?.includes('No image')) {
+        return;
+      }
+      await this.mostrarError('Error al acceder a la cámara');
+    }
   }
 
   finalizarRecorrido() {
