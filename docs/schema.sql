@@ -155,3 +155,18 @@ VALUES (
     '$2b$10$rLmBvbmq54gumCYX5eLIzuVLd2Dzk6GLfLgyhNEtQXYDhaRJlYVIm',
     'admin'
 );
+
+-- =============================================
+-- CAMBIOS POST-DESARROLLO: Control de fotos e IDs externos
+-- =============================================
+ALTER TABLE posiciones ADD COLUMN IF NOT EXISTS external_id UUID;
+
+CREATE TABLE IF NOT EXISTS reportes_foto (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    recorrido_id UUID NOT NULL REFERENCES recorridos(id),
+    posicion_id UUID REFERENCES posiciones(id),
+    foto_base64 TEXT NOT NULL,
+    external_posicion_id UUID,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
