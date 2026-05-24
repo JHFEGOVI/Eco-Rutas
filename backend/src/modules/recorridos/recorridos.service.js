@@ -170,18 +170,24 @@ const registrarPosicion = async (recorridoId, lat, lon, conductorId) => {
 
   // Intentar sincronizar con la API externa si el recorrido tiene external_id
   if (recorrido.external_id) {
-    const exito = await registrarPosicionExterna({
+    const externalPosicionId = await registrarPosicionExterna({
       recorridoExternalId: recorrido.external_id,
       lat,
       lon
     });
 
-    if (exito) {
+    if (externalPosicionId) {
       await pool.query(
-        `UPDATE posiciones SET sincronizado_api_ext = true WHERE id = $1`,
+        `UPDATE posiciones SET external_id = $1, sincronizado_api_ext = true WHERE id = $2`,
+        [externalPosicionId, posicion.id]
+      );
+      posicion.external_id = externalPosicionId;
+      posicion.sincronizado_api_ext = true;
+    } else {
+      await pool.query(
+        `UPDATE posiciones SET sincronizado_api_ext = false WHERE id = $1`,
         [posicion.id]
       );
-      posicion.sincronizado_api_ext = true;
     }
   }
 

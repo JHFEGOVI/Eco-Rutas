@@ -90,7 +90,7 @@ const crearRecorridoExterno = async ({ ruta_external_id, vehiculo_external_id })
 /**
  * Registra una posición GPS en un recorrido externo.
  * @param {{ recorridoExternalId, lat, lon }} posicion
- * @returns {boolean} true si fue exitoso, false si falló
+ * @returns {string|null} UUID de la posición creada, o null si falló
  */
 const registrarPosicionExterna = async ({ recorridoExternalId, lat, lon }) => {
   try {
@@ -103,12 +103,13 @@ const registrarPosicionExterna = async ({ recorridoExternalId, lat, lon }) => {
     if (!respuesta.ok) {
       const texto = await respuesta.text();
       console.warn(`Advertencia al enviar posición a API externa [${respuesta.status}]: ${texto}`);
-      return false;
+      return null;
     }
-    return true;
+    const datos = await respuesta.json();
+    return datos.id || null;
   } catch (err) {
     console.error('Error de red al enviar posición a la API externa:', err.message);
-    return false;
+    return null;
   }
 };
 
