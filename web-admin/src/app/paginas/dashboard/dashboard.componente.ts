@@ -74,6 +74,12 @@ export class DashboardComponente implements OnInit, OnDestroy {
       icono: 'assignment',
       ruta: '/dashboard/asignaciones',
     },
+    {
+      etiqueta: 'Reportes',
+      etiquetaCorta: 'Report.',
+      icono: 'flag',
+      ruta: '/dashboard/reportes',
+    },
   ];
 
   nombreUsuario = '';
@@ -143,6 +149,7 @@ export class DashboardComponente implements OnInit, OnDestroy {
       case 'conductores':  this.seccionActual = 'Conductores';  break;
       case 'rutas':        this.seccionActual = 'Rutas';        break;
       case 'asignaciones': this.seccionActual = 'Asignaciones'; break;
+      case 'reportes':     this.seccionActual = 'Reportes';     break;
       default:             this.seccionActual = 'Inicio';       break;
     }
     this.cdr.markForCheck();

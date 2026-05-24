@@ -1,0 +1,91 @@
+<!-- ── STATS ── -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-top">
+      <span class="stat-label">Total Reportes</span>
+      <div class="stat-icono verde"><mat-icon>flag</mat-icon></div>
+    </div>
+    <span class="stat-valor">{{ totalReportes }}</span>
+    <span class="stat-tag verde">Reportes fotográficos</span>
+  </div>
+</div>
+
+<!-- ── CABECERA ── -->
+<div class="cabecera">
+  <div>
+    <h2 class="titulo-seccion">Reportes Fotográficos</h2>
+    <span class="subtitulo-seccion">Fotografías enviadas por los conductores en ruta</span>
+  </div>
+</div>
+
+<!-- ── SPINNER ── -->
+@if (cargando) {
+  <div class="centro"><mat-spinner diameter="48"></mat-spinner></div>
+}
+
+<!-- ── TABLA ── -->
+<div class="tabla-panel" [style.display]="cargando ? 'none' : 'block'">
+  <table mat-table [dataSource]="reportes" class="tabla">
+
+    <!-- Conductor -->
+    <ng-container matColumnDef="conductor">
+      <th mat-header-cell *matHeaderCellDef>Conductor</th>
+      <td mat-cell *matCellDef="let r">
+        <div class="conductor-fila">
+          <div class="conductor-avatar">
+            <mat-icon style="font-size: 16px; width: 16px; height: 16px; color: #1e8c34;">person</mat-icon>
+          </div>
+          <span style="font-weight: 600;">{{ r.conductor_nombre }}</span>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Ruta -->
+    <ng-container matColumnDef="ruta">
+      <th mat-header-cell *matHeaderCellDef>Ruta</th>
+      <td mat-cell *matCellDef="let r">
+        <span class="placa">{{ r.ruta_nombre }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Fecha -->
+    <ng-container matColumnDef="fecha">
+      <th mat-header-cell *matHeaderCellDef>Fecha / Hora</th>
+      <td mat-cell *matCellDef="let r">
+        {{ r.created_at | date:'dd/MM/yyyy HH:mm' }}
+      </td>
+    </ng-container>
+
+    <!-- Miniatura de Foto -->
+    <ng-container matColumnDef="foto">
+      <th mat-header-cell *matHeaderCellDef>Miniatura</th>
+      <td mat-cell *matCellDef="let r">
+        <div class="miniatura-contenedor">
+          <img [src]="r.foto_base64" alt="Miniatura reporte" class="miniatura-img" (click)="verFoto(r)">
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Acciones -->
+    <ng-container matColumnDef="acciones">
+      <th mat-header-cell *matHeaderCellDef>Acciones</th>
+      <td mat-cell *matCellDef="let r">
+        <div class="acciones">
+          <button class="btn-accion btn-editar" title="Ver foto a tamaño completo" (click)="verFoto(r)">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </div>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="columnas"></tr>
+    <tr mat-row *matRowDef="let row; columns: columnas;"></tr>
+  </table>
+
+  @if (!cargando && reportes.data.length === 0) {
+    <div class="vacio">
+      <mat-icon>flag</mat-icon>
+      <p>No hay reportes disponibles</p>
+    </div>
+  }
+</div>
