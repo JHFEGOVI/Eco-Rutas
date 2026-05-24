@@ -113,4 +113,32 @@ const registrarPosicionExterna = async ({ recorridoExternalId, lat, lon }) => {
   }
 };
 
-module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno, registrarPosicionExterna };
+/**
+ * Sube una foto (base64) asociada a una posición en la API externa del profesor.
+ * @param {{ external_posicion_id: string, foto_base64: string }} datos
+ * @returns {boolean} true si fue exitoso, false si falló
+ */
+const subirFotoExterna = async ({ external_posicion_id, foto_base64 }) => {
+  try {
+    const respuesta = await fetch(
+      `${process.env.EXTERNAL_API_URL}/api/recorridos/posiciones/${external_posicion_id}/imagen`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imagen_base64: foto_base64 }),
+      }
+    );
+
+    if (!respuesta.ok) {
+      const texto = await respuesta.text();
+      console.warn(`Advertencia al subir foto a API externa [${respuesta.status}]: ${texto}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Error de red al subir foto a la API externa:', err.message);
+    return false;
+  }
+};
+
+module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno, registrarPosicionExterna, subirFotoExterna };
