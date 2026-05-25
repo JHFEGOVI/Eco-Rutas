@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { DatePipe } from '@angular/common';
-import { environment } from '../../../../environments/environment';
+import { environment } from '../../../environments/environment';
 
 interface ReporteFoto {
   id: string;

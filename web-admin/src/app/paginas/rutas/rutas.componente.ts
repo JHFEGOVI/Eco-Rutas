@@ -495,6 +495,46 @@ export class RutasComponente implements OnInit, AfterViewInit {
 
     this.polyline = L.polyline([], { color: '#1e8c34', weight: 4 }).addTo(this.map);
 
+    // Cargar capa de calles de Buenaventura
+    fetch('assets/buenaventura-streets.geojson')
+      .then(response => response.json())
+      .then(data => {
+        // 1. Capa visible (trazado gris)
+        L.geoJSON(data, {
+          style: {
+            color: '#666666',
+            weight: 2,
+            opacity: 0.7,
+            fill: false
+          }
+        }).addTo(this.map);
+
+        // 2. Capa invisible (área de clic más ancha)
+        L.geoJSON(data, {
+          style: {
+            color: 'transparent',
+            weight: 10,
+            opacity: 0,
+            fill: false
+          }
+        }).on('click', (e: L.LeafletMouseEvent) => {
+          if (!this.modoEdicion) return;
+          if (this.formulario.get('nombre')?.invalid) {
+            this.mostrarError('Escribe el nombre de la ruta antes de trazar puntos.');
+            return;
+          }
+          this.puntosRuta.push([e.latlng.lat, e.latlng.lng]);
+          this.dibujarPuntosMapa();
+          this.cd.detectChanges();
+
+          // Evitar que el clic se propague al mapa base y duplique el punto
+          if (e.originalEvent) {
+            e.originalEvent.stopPropagation();
+          }
+        }).addTo(this.map);
+      })
+      .catch(error => console.error('Error al cargar el GeoJSON de calles:', error));
+
     /* CRÍTICO: invalidateSize le dice a Leaflet el tamaño real del contenedor.
        Sin esto el mapa aparece gris o cortado, especialmente en móvil. */
     setTimeout(() => {
