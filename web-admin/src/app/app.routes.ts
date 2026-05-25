@@ -7,7 +7,7 @@ import { VehiculosComponente } from './paginas/vehiculos/vehiculos.componente';
 import { ConductoresComponente } from './paginas/conductores/conductores.componente';
 import { RutasComponente } from './paginas/rutas/rutas.componente';
 import { AsignacionesComponente } from './paginas/asignaciones/asignaciones.componente';
-import { ReportesComponente } from './paginas/dashboard/reportes/reportes.componente';
+import { ReportesComponente } from './paginas/reportes/reportes.componente';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
