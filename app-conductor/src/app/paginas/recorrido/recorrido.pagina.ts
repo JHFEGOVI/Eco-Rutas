@@ -368,7 +368,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
           backgroundTitle: 'Recorrido activo',
           requestPermissions: true,
           stale: false,
-          distanceFilter: 5
+          distanceFilter: 1
         },
         (location: Location | undefined, error: CallbackError | undefined) => {
           if (error || !location) return;
