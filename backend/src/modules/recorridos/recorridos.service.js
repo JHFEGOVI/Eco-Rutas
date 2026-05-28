@@ -1,5 +1,5 @@
 const pool = require('../../config/database');
-const { crearRecorridoExterno, registrarPosicionExterna } = require('../../services/externalApiService');
+const { crearRecorridoExterno, registrarPosicionExterna, finalizarRecorridoExterno } = require('../../services/externalApiService');
 const { emitirEvento } = require('../../config/socket');
 
 const iniciarRecorrido = async (conductorId) => {
@@ -122,6 +122,10 @@ const finalizarRecorrido = async (recorridoId, conductorId) => {
     `UPDATE asignaciones SET estado = 'completada', updated_at = NOW() WHERE id = $1`,
     [recorrido.asignacion_id]
   );
+
+  if (recorrido.external_id) {
+    await finalizarRecorridoExterno(recorrido.external_id);
+  }
 
   emitirEvento('recorrido_finalizado', { recorrido_id: recorridoId });
 

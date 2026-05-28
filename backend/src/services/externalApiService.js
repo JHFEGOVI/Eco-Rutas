@@ -141,4 +141,28 @@ const subirFotoExterna = async ({ external_posicion_id, foto_base64 }) => {
   }
 };
 
-module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno, registrarPosicionExterna, subirFotoExterna };
+/**
+ * Finaliza un recorrido en la API externa del profesor.
+ * @param {string} recorridoExternalId
+ * @returns {boolean} true si fue exitoso, false si falló
+ */
+const finalizarRecorridoExterno = async (recorridoExternalId) => {
+  try {
+    const respuesta = await fetch(`${process.env.EXTERNAL_API_URL}/api/recorridos/${recorridoExternalId}/finalizar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!respuesta.ok) {
+      const texto = await respuesta.text();
+      console.warn(`Advertencia al finalizar recorrido externo [${respuesta.status}]: ${texto}`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Error de red al finalizar recorrido en la API externa:', err.message);
+    return false;
+  }
+};
+
+module.exports = { crearVehiculoExterno, crearRutaExterna, crearRecorridoExterno, registrarPosicionExterna, subirFotoExterna, finalizarRecorridoExterno };
