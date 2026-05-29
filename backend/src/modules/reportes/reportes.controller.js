@@ -72,8 +72,27 @@ const obtenerPorRecorridoController = async (req, res, next) => {
   }
 };
 
+/**
+ * GET /api/reportes/:id/foto
+ * Retorna una sola foto con su base64.
+ */
+const obtenerFotoPorIdController = async (req, res, next) => {
+  try {
+    const datos = await servicio.obtenerFotoPorId(req.params.id);
+    if (!datos) {
+      const error = new Error('Foto no encontrada');
+      error.status = 404;
+      throw error;
+    }
+    res.json({ success: true, data: datos });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   guardarFotoController,
   obtenerTodasController,
   obtenerPorRecorridoController,
+  obtenerFotoPorIdController,
 };

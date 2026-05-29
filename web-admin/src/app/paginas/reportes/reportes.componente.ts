@@ -13,7 +13,6 @@ interface ReporteFoto {
   id: string;
   recorrido_id: string;
   posicion_id: string;
-  foto_base64: string;
   external_posicion_id: string | null;
   created_at: string;
   conductor_nombre: string;
@@ -92,6 +91,7 @@ export class ReportesComponente implements OnInit {
   columnas = ['conductor', 'ruta', 'fecha', 'foto', 'acciones'];
   reportes = new MatTableDataSource<ReporteFoto>([]);
   cargando = false;
+  cargandoFotoId: string | null = null;
 
   get totalReportes() { return this.reportes.data.length; }
 
@@ -120,10 +120,26 @@ export class ReportesComponente implements OnInit {
   }
 
   verFoto(reporte: ReporteFoto): void {
-    this.dialog.open(VerFotoDialogo, {
-      width: '90%',
-      maxWidth: '540px',
-      data: { foto_base64: reporte.foto_base64 }
+    if (this.cargandoFotoId === reporte.id) return;
+    
+    this.cargandoFotoId = reporte.id;
+    this.http.get<any>(`${environment.apiUrl}/reportes/${reporte.id}/foto`).subscribe({
+      next: (res) => {
+        this.cargandoFotoId = null;
+        if (res.data && res.data.foto_base64) {
+          this.dialog.open(VerFotoDialogo, {
+            width: '90%',
+            maxWidth: '540px',
+            data: { foto_base64: res.data.foto_base64 }
+          });
+        } else {
+          this.mostrarError('La imagen no fue encontrada en el servidor');
+        }
+      },
+      error: (err) => {
+        this.cargandoFotoId = null;
+        this.mostrarError(err?.error?.message ?? 'No se pudo descargar la imagen del reporte');
+      }
     });
   }
 

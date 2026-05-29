@@ -5,6 +5,7 @@ const {
   guardarFotoController,
   obtenerTodasController,
   obtenerPorRecorridoController,
+  obtenerFotoPorIdController,
 } = require('./reportes.controller');
 
 const router = Router();
@@ -88,5 +89,29 @@ router.get('/', auth, roles(['admin']), obtenerTodasController);
  *         description: Token no proporcionado o inválido.
  */
 router.get('/recorrido/:id', auth, obtenerPorRecorridoController);
+
+/**
+ * @swagger
+ * /api/reportes/{id}/foto:
+ *   get:
+ *     summary: Obtener una foto específica por su ID
+ *     tags: [Reportes]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID de la foto
+ *     responses:
+ *       200:
+ *         description: Datos de la foto incluyendo base64.
+ *       404:
+ *         description: Foto no encontrada.
+ */
+router.get('/:id/foto', auth, obtenerFotoPorIdController);
 
 module.exports = router;

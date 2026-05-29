@@ -55,7 +55,6 @@ const obtenerTodasLasFotos = async () => {
        rf.id,
        rf.recorrido_id,
        rf.posicion_id,
-       rf.foto_base64,
        rf.external_posicion_id,
        rf.created_at,
        u.nombre   AS conductor_nombre,
@@ -70,4 +69,17 @@ const obtenerTodasLasFotos = async () => {
   return resultado.rows;
 };
 
-module.exports = { guardarFoto, obtenerFotosPorRecorrido, obtenerTodasLasFotos };
+/**
+ * Obtiene una foto específica por su ID.
+ * @param {string} id UUID del reporte de foto
+ * @returns {object|null} El reporte de foto
+ */
+const obtenerFotoPorId = async (id) => {
+  const resultado = await pool.query(
+    `SELECT * FROM reportes_foto WHERE id = $1`,
+    [id]
+  );
+  return resultado.rows[0] || null;
+};
+
+module.exports = { guardarFoto, obtenerFotosPorRecorrido, obtenerTodasLasFotos, obtenerFotoPorId };
