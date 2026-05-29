@@ -12,6 +12,7 @@ const rutasRoutes = require('./modules/rutas/rutas.routes');
 const asignacionesRoutes = require('./modules/asignaciones/asignaciones.routes');
 const recorridosRoutes = require('./modules/recorridos/recorridos.routes');
 const reportesRoutes = require('./modules/reportes/reportes.routes');
+const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use('/api/rutas', rutasRoutes);
 app.use('/api/asignaciones', asignacionesRoutes);
 app.use('/api/recorridos', recorridosRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Middleware de errores (debe ir al final)
 app.use(errorHandler);
