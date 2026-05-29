@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -204,7 +204,8 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     private activatedRoute: ActivatedRoute,
     private http: HttpClient,
     private router: Router,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private ngZone: NgZone
   ) {
     addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, flagOutline });
   }
@@ -372,9 +373,11 @@ export class RecorridoPagina implements OnInit, OnDestroy {
         },
         (location: Location | undefined, error: CallbackError | undefined) => {
           if (error || !location) return;
-          const pos = { lat: location.latitude, lon: location.longitude };
-          this.coordenadas = pos;
-          this.enviarPosicion(pos);
+          this.ngZone.run(() => {
+            const pos = { lat: location.latitude, lon: location.longitude };
+            this.coordenadas = pos;
+            this.enviarPosicion(pos);
+          });
         }
       );
     } else {
