@@ -363,13 +363,9 @@ export class RutasPagina implements OnInit, OnDestroy {
     if (usuario?.id) {
       this.conductorId = usuario.id;
       this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
-      // Las rutas ya se cargan por la suscripción a usuario$, no es necesario llamar aquí
-
-      // Iniciar sincronización automática de rutas cada 15 segundos
-      this.intervaloRutas = interval(10000).subscribe(() => {
-        if (this.conductorId) {
-          this.cargarRutasAsignadas(this.conductorId);
-        }
+      this.cargarRutasAsignadas(usuario.id); // carga inicial explícita
+      this.intervaloRutas = interval(15000).subscribe(() => {
+        if (this.conductorId) this.cargarRutasAsignadas(this.conductorId);
       });
     } else {
       this.cargando = false;
