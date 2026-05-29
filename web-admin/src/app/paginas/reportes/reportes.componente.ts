@@ -6,7 +6,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { DatePipe } from '@angular/common';
+import { DatePipe, SlicePipe } from '@angular/common';
 import { environment } from '../../../environments/environment';
 
 interface ReporteFoto {
@@ -82,7 +82,8 @@ export class VerFotoDialogo {
     MatIconModule,
     MatButtonModule,
     MatProgressSpinnerModule,
-    DatePipe
+    DatePipe,
+    SlicePipe
   ],
   templateUrl: './reportes.componente.html',
   styleUrl: './reportes.componente.scss'
@@ -92,6 +93,7 @@ export class ReportesComponente implements OnInit {
   reportes = new MatTableDataSource<ReporteFoto>([]);
   cargando = false;
   cargandoFotoId: string | null = null;
+  private cacheFotos: { [id: string]: string } = {};
 
   get totalReportes() { return this.reportes.data.length; }
 
@@ -120,6 +122,15 @@ export class ReportesComponente implements OnInit {
   }
 
   verFoto(reporte: ReporteFoto): void {
+    if (this.cacheFotos[reporte.id]) {
+      this.dialog.open(VerFotoDialogo, {
+        width: '90%',
+        maxWidth: '540px',
+        data: { foto_base64: this.cacheFotos[reporte.id] }
+      });
+      return;
+    }
+
     if (this.cargandoFotoId === reporte.id) return;
     
     this.cargandoFotoId = reporte.id;
@@ -127,6 +138,7 @@ export class ReportesComponente implements OnInit {
       next: (res) => {
         this.cargandoFotoId = null;
         if (res.data && res.data.foto_base64) {
+          this.cacheFotos[reporte.id] = res.data.foto_base64;
           this.dialog.open(VerFotoDialogo, {
             width: '90%',
             maxWidth: '540px',
