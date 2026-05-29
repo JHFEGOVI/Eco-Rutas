@@ -34,7 +34,7 @@ const obtenerPorConductor = async (conductorId) => {
   const resultado = await pool.query(
     `${QUERY_BASE}
      WHERE a.conductor_id = $1
-       AND a.fecha = CURRENT_DATE
+       AND a.fecha = (NOW() AT TIME ZONE 'America/Bogota')::date
      ORDER BY a.created_at DESC`,
     [conductorId]
   );
