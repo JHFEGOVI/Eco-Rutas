@@ -1,12 +1,18 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { environment } from '../../../environments/environment';
 import { AsignacionesFormDialogo } from './asignaciones-form.dialogo';
 import { AsignacionEstadoDialogo } from './asignacion-estado.dialogo';
@@ -24,17 +30,23 @@ interface Asignacion {
   selector: 'app-asignaciones',
   standalone: true,
   imports: [
-    CommonModule, NgClass,
+    CommonModule, NgClass, FormsModule,
     MatTableModule, MatDialogModule, MatSnackBarModule,
     MatIconModule, MatButtonModule, MatProgressSpinnerModule,
+    MatDatepickerModule, MatNativeDateModule, MatFormFieldModule, MatInputModule, MatSelectModule
   ],
   templateUrl: './asignaciones.componente.html',
   styleUrl:    './asignaciones.componente.css',
 })
 export class AsignacionesComponente implements OnInit {
   columnas = ['conductor', 'ruta', 'fecha', 'estado', 'acciones'];
+  asignacionesBase: Asignacion[] = [];
   asignaciones: Asignacion[] = [];
   cargando = false;
+
+  filtroFecha: Date | null = new Date();
+  filtroConductor: string = '';
+  conductores: any[] = [];
 
   get totalAsignaciones()  { return this.asignaciones.length; }
   get totalPendientes()    { return this.asignaciones.filter(a => a.estado === 'pendiente').length; }
@@ -48,18 +60,52 @@ export class AsignacionesComponente implements OnInit {
     private cd: ChangeDetectorRef,
   ) {}
 
-  ngOnInit(): void { this.cargarAsignaciones(); }
+  ngOnInit(): void { 
+    this.cargarConductores();
+    this.cargarAsignaciones(); 
+  }
+
+  cargarConductores(): void {
+    this.http.get<any>(`${environment.apiUrl}/usuarios`).subscribe({
+      next: (res) => {
+        this.conductores = (res.data || []).filter((u: any) => u.rol === 'conductor');
+      }
+    });
+  }
 
   cargarAsignaciones(): void {
     this.cargando = true;
     this.cd.detectChanges();
     this.http.get<any>(`${environment.apiUrl}/asignaciones`).subscribe({
-      next: (res) => { this.asignaciones = res.data; this.cargando = false; this.cd.detectChanges(); },
+      next: (res) => { 
+        this.asignacionesBase = res.data; 
+        this.aplicarFiltros();
+        this.cargando = false; 
+        this.cd.detectChanges(); 
+      },
       error: (err) => {
         this.mostrarError(err?.error?.message ?? 'No se pudieron cargar las asignaciones');
         this.cargando = false; this.cd.detectChanges();
       },
     });
+  }
+
+  aplicarFiltros(): void {
+    let filtradas = [...this.asignacionesBase];
+
+    if (this.filtroFecha) {
+      const y = this.filtroFecha.getFullYear();
+      const m = String(this.filtroFecha.getMonth() + 1).padStart(2, '0');
+      const d = String(this.filtroFecha.getDate()).padStart(2, '0');
+      const fechaStr = `${y}-${m}-${d}`;
+      filtradas = filtradas.filter(a => this.formatearFecha(a.fecha) === fechaStr);
+    }
+
+    if (this.filtroConductor) {
+      filtradas = filtradas.filter(a => a.conductor_nombre === this.filtroConductor);
+    }
+
+    this.asignaciones = filtradas;
   }
 
   abrirModalNueva(): void {

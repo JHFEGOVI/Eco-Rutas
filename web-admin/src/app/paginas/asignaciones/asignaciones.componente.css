@@ -23,6 +23,13 @@
 .titulo-seccion { margin:0; font-size:1.1rem; font-weight:900; color:#111; }
 .subtitulo-seccion { font-size:0.7rem; color:#9e9e9e; display:block; margin-top:2px; }
 
+.filtros-header { display:flex; gap:10px; justify-content:flex-end; align-items:center; }
+.filtro-campo-header { width: 140px; margin: 0; font-family: 'Nunito', sans-serif; }
+.filtro-campo-header ::ng-deep .mdc-text-field--outlined { --mdc-outlined-text-field-container-shape: 8px; background: #fff; }
+.filtro-campo-header ::ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+.filtro-campo-header ::ng-deep .mat-mdc-form-field-infix { padding-top: 6px; padding-bottom: 6px; min-height: 32px; font-size: 0.75rem; }
+.th-acciones { text-align: right; padding-right: 1rem !important; vertical-align: middle; }
+
 .btn-nuevo { display:flex; align-items:center; gap:6px; padding:0.5rem 1rem; background:#1e8c34; color:#fff; border:none; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; transition:background 0.15s,transform 0.1s; box-shadow:0 2px 8px rgba(30,140,52,0.3); }
 .btn-nuevo:hover { background:#145a24; transform:translateY(-1px); }
 .btn-nuevo mat-icon { font-size:16px !important; width:16px !important; height:16px !important; }
