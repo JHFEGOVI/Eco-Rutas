@@ -131,9 +131,52 @@ DELETE /api/rutas/:id           (admin – desactiva)
 GET    /api/asignaciones                         (admin)
 GET    /api/asignaciones/:id                     (auth)
 GET    /api/asignaciones/conductor/:conductorId  (auth – solo las de hoy)
-POST   /api/asignaciones                         (admin)
 PATCH  /api/asignaciones/:id/estado              (admin)
 ```
+
+### Recorridos
+```
+GET    /api/recorridos/activos-publico           (Público – para ciudadanos)
+GET    /api/recorridos/activo                    (Conductor – su ruta actual)
+POST   /api/recorridos/iniciar                   (Conductor)
+POST   /api/recorridos/:id/finalizar             (Conductor)
+POST   /api/recorridos/:id/posiciones            (Conductor)
+```
+
+### Reportes de Foto
+```
+GET    /api/reportes                             (admin – ver todas las fotos)
+GET    /api/reportes/recorrido/:recorridoId      (auth – fotos de un viaje)
+POST   /api/reportes                             (Conductor – subir foto base64)
+```
+
+### Dashboard
+```
+GET    /api/dashboard/metricas                   (admin – estadísticas generales)
+```
+
+---
+
+## Despliegue en VPS
+
+El servidor está configurado en un VPS Linux usando **PM2** para la gestión de procesos.
+
+### Flujo de actualización:
+
+1. Entrar al servidor vía SSH.
+2. Navegar a la carpeta del proyecto: `cd ~/git-y-hub/Eco-Rutas/backend`.
+3. Actualizar el código:
+   ```bash
+   git pull origin main
+   ```
+4. Reiniciar el servicio con PM2:
+   ```bash
+   pm2 restart server
+   ```
+5. Ver logs en tiempo real (opcional):
+   ```bash
+   pm2 logs server
+   ```
 
 ---
 

@@ -170,3 +170,7 @@ CREATE TABLE IF NOT EXISTS reportes_foto (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- IMPORTANTE: Ejecutar GRANT de permisos para el usuario de la aplicación
+-- GRANT ALL PRIVILEGES ON TABLE reportes_foto TO ecorrutas_user;
+-- GRANT USAGE, SELECT ON SEQUENCE reportes_foto_id_seq TO ecorrutas_user; -- Si aplica
+

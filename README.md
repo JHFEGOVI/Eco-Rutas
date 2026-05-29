@@ -35,9 +35,26 @@ Eco-Rutas/
 
 ## Estado actual
 
-El backend está completo y probado localmente. Cubre autenticación con JWT, CRUD de usuarios, vehículos, rutas con soporte geoespacial, asignaciones y registro de recorridos.
+El **Backend** está completo y desplegado en producción. Gestiona autenticación JWT, CRUD geoespacial con PostGIS, asignaciones y la doble persistencia con la API externa.
 
-El VPS donde va a desplegarse está en configuración. El panel web y las apps móviles están en desarrollo activo.
+El **Panel Web (Admin)** está desplegado y operativo para la gestión de rutas y reportes.
+
+Las **Apps móviles** (Conductor y Ciudadano) han sido generadas como APKs para pruebas en dispositivos Android.
+
+- **Dominio de producción:** `https://srv1564743.hstgr.cloud`
+- **Web Admin:** [srv1564743.hstgr.cloud](https://srv1564743.hstgr.cloud)
+
+---
+
+## Endpoints Principales (Producción)
+
+Toda la API está bajo el prefijo `/api`.
+
+- `POST /auth/login` - Autenticación.
+- `GET  /recorridos/activos-publico` - Listado público para la app ciudadano (sin token).
+- `POST /recorridos/iniciar` - Inicio de ruta (conductor).
+- `POST /reportes` - Envío de fotos de reporte con base64.
+- `GET  /dashboard/metricas` - Resumen para el panel administrativo.
 
 ---
 
