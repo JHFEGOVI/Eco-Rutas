@@ -17,16 +17,16 @@
     </div>
     <div class="bienvenida-stats">
       <div class="bw-stat">
-        <span class="bw-num">{{ resumen.vehiculosOperativos }}</span>
+        <span class="bw-num">{{ resumen.vehiculos_operativos }}</span>
         <span class="bw-label">Operativos</span>
       </div>
       <div class="bw-stat">
-        <span class="bw-num">{{ resumen.totalRutas }}</span>
-        <span class="bw-label">Rutas</span>
+        <span class="bw-num">{{ resumen.recorridos_en_curso }}</span>
+        <span class="bw-label">En curso</span>
       </div>
       <div class="bw-stat">
-        <span class="bw-num">{{ resumen.conductoresActivos }}</span>
-        <span class="bw-label">Conductores</span>
+        <span class="bw-num">{{ resumen.completadas_hoy }}</span>
+        <span class="bw-label">Completadas</span>
       </div>
     </div>
     <div class="bienvenida-logo">
@@ -38,35 +38,35 @@
   <div class="stats-grid">
     <div class="stat-card" (click)="irA('/dashboard/vehiculos')">
       <div class="stat-card-top">
-        <span class="stat-card-label">Total vehículos</span>
+        <span class="stat-card-label">Vehículos Operativos</span>
         <div class="stat-card-icono verde"><mat-icon>local_shipping</mat-icon></div>
       </div>
-      <span class="stat-card-valor">{{ resumen.totalVehiculos }}</span>
-      <span class="stat-card-tag verde">{{ resumen.vehiculosOperativos }} operativos</span>
+      <span class="stat-card-valor">{{ resumen.vehiculos_operativos }}</span>
+      <span class="stat-card-tag verde">Listos para ruta</span>
     </div>
-    <div class="stat-card" (click)="irA('/dashboard/conductores')">
+    <div class="stat-card" (click)="irA('/dashboard/asignaciones')">
       <div class="stat-card-top">
-        <span class="stat-card-label">Conductores</span>
-        <div class="stat-card-icono azul"><mat-icon>people</mat-icon></div>
+        <span class="stat-card-label">Recorridos Activos</span>
+        <div class="stat-card-icono azul"><mat-icon>map</mat-icon></div>
       </div>
-      <span class="stat-card-valor">{{ resumen.totalConductores }}</span>
-      <span class="stat-card-tag verde">{{ resumen.conductoresActivos }} activos</span>
+      <span class="stat-card-valor">{{ resumen.recorridos_en_curso }}</span>
+      <span class="stat-card-tag azul">En progreso</span>
     </div>
-    <div class="stat-card" (click)="irA('/dashboard/rutas')">
+    <div class="stat-card" (click)="irA('/dashboard/asignaciones')">
       <div class="stat-card-top">
-        <span class="stat-card-label">Rutas activas</span>
-        <div class="stat-card-icono verde"><mat-icon>map</mat-icon></div>
+        <span class="stat-card-label">Rutas Completadas</span>
+        <div class="stat-card-icono verde"><mat-icon>check_circle</mat-icon></div>
       </div>
-      <span class="stat-card-valor">{{ resumen.totalRutas }}</span>
-      <span class="stat-card-tag verde">En operación</span>
+      <span class="stat-card-valor">{{ resumen.completadas_hoy }}</span>
+      <span class="stat-card-tag verde">El día de hoy</span>
     </div>
-    <div class="stat-card" [class.stat-card--alerta]="resumen.vehiculosAveriados > 0">
+    <div class="stat-card" (click)="irA('/dashboard/reportes')">
       <div class="stat-card-top">
-        <span class="stat-card-label">Vehículos averiados</span>
-        <div class="stat-card-icono rojo"><mat-icon>warning</mat-icon></div>
+        <span class="stat-card-label">Fotos de Reporte</span>
+        <div class="stat-card-icono naranja"><mat-icon>flag</mat-icon></div>
       </div>
-      <span class="stat-card-valor">{{ resumen.vehiculosAveriados }}</span>
-      <span class="stat-card-tag rojo">Requieren atención</span>
+      <span class="stat-card-valor">{{ resumen.fotos_hoy }}</span>
+      <span class="stat-card-tag naranja">Recibidas hoy</span>
     </div>
   </div>
 
@@ -130,11 +130,11 @@
                 <circle class="donut-track" cx="40" cy="40" r="30"/>
                 <circle class="donut-fill" cx="40" cy="40" r="30"
                         stroke="#1e8c34"
-                        [attr.stroke-dasharray]="getDashArray(resumen.vehiculosOperativos, resumen.totalVehiculos)"/>
+                        [attr.stroke-dasharray]="getDashArray(1, 1)"/>
               </svg>
               <div class="donut-centro">
-                <span class="donut-pct">{{ getPct(resumen.vehiculosOperativos, resumen.totalVehiculos) }}%</span>
-                <span class="donut-det">{{ resumen.vehiculosOperativos }}/{{ resumen.totalVehiculos }}</span>
+                <span class="donut-pct">{{ resumen.vehiculos_operativos }}</span>
+                <span class="donut-det">Operativos</span>
               </div>
             </div>
             <span class="donut-label">Vehículos op.</span>
@@ -143,18 +143,18 @@
           <div class="donut-card">
             <div class="donut-wrap">
               <svg class="donut-svg" viewBox="0 0 80 80"
-                   role="img" aria-label="Conductores activos">
+                   role="img" aria-label="Recorridos en curso">
                 <circle class="donut-track" cx="40" cy="40" r="30"/>
                 <circle class="donut-fill" cx="40" cy="40" r="30"
                         stroke="#1565c0"
-                        [attr.stroke-dasharray]="getDashArray(resumen.conductoresActivos, resumen.totalConductores)"/>
+                        [attr.stroke-dasharray]="getDashArray(1, 1)"/>
               </svg>
               <div class="donut-centro">
-                <span class="donut-pct" style="color:#1565c0">{{ getPct(resumen.conductoresActivos, resumen.totalConductores) }}%</span>
-                <span class="donut-det">{{ resumen.conductoresActivos }}/{{ resumen.totalConductores }}</span>
+                <span class="donut-pct" style="color:#1565c0">{{ resumen.recorridos_en_curso }}</span>
+                <span class="donut-det">En curso</span>
               </div>
             </div>
-            <span class="donut-label">Conductores act.</span>
+            <span class="donut-label">Recorridos</span>
           </div>
         </div>
 
@@ -167,61 +167,45 @@
             </div>
             <div class="resumen-barra-wrap">
               <div class="resumen-barra">
-                <div class="resumen-barra-fill verde"
-                     [style.width.%]="resumen.totalVehiculos > 0 ? (resumen.vehiculosOperativos / resumen.totalVehiculos) * 100 : 0"></div>
+                <div class="resumen-barra-fill verde" style="width:100%"></div>
               </div>
-              <span class="resumen-num">{{ resumen.vehiculosOperativos }}/{{ resumen.totalVehiculos }}</span>
-            </div>
-          </div>
-          <div class="resumen-item">
-            <div class="resumen-item-izq">
-              <div class="resumen-dot rojo"></div>
-              <span class="resumen-label">Vehículos averiados</span>
-            </div>
-            <div class="resumen-barra-wrap">
-              <div class="resumen-barra">
-                <div class="resumen-barra-fill rojo"
-                     [style.width.%]="resumen.totalVehiculos > 0 ? (resumen.vehiculosAveriados / resumen.totalVehiculos) * 100 : 0"></div>
-              </div>
-              <span class="resumen-num">{{ resumen.vehiculosAveriados }}/{{ resumen.totalVehiculos }}</span>
+              <span class="resumen-num">{{ resumen.vehiculos_operativos }}</span>
             </div>
           </div>
           <div class="resumen-item">
             <div class="resumen-item-izq">
               <div class="resumen-dot azul"></div>
-              <span class="resumen-label">Conductores activos</span>
+              <span class="resumen-label">Recorridos en curso</span>
             </div>
             <div class="resumen-barra-wrap">
               <div class="resumen-barra">
-                <div class="resumen-barra-fill azul"
-                     [style.width.%]="resumen.totalConductores > 0 ? (resumen.conductoresActivos / resumen.totalConductores) * 100 : 0"></div>
+                <div class="resumen-barra-fill azul" style="width:100%"></div>
               </div>
-              <span class="resumen-num">{{ resumen.conductoresActivos }}/{{ resumen.totalConductores }}</span>
+              <span class="resumen-num">{{ resumen.recorridos_en_curso }}</span>
             </div>
           </div>
           <div class="resumen-item">
             <div class="resumen-item-izq">
               <div class="resumen-dot verde"></div>
-              <span class="resumen-label">Rutas en operación</span>
+              <span class="resumen-label">Rutas completadas hoy</span>
             </div>
             <div class="resumen-barra-wrap">
               <div class="resumen-barra">
                 <div class="resumen-barra-fill verde" style="width:100%"></div>
               </div>
-              <span class="resumen-num">{{ resumen.totalRutas }}</span>
+              <span class="resumen-num">{{ resumen.completadas_hoy }}</span>
             </div>
           </div>
           <div class="resumen-item">
             <div class="resumen-item-izq">
               <div class="resumen-dot naranja"></div>
-              <span class="resumen-label">Asignaciones pendientes</span>
+              <span class="resumen-label">Fotos de hoy</span>
             </div>
             <div class="resumen-barra-wrap">
               <div class="resumen-barra">
-                <div class="resumen-barra-fill naranja"
-                     [style.width.%]="resumen.totalAsignaciones > 0 ? (resumen.asignacionesPendientes / resumen.totalAsignaciones) * 100 : 0"></div>
+                <div class="resumen-barra-fill naranja" style="width:100%"></div>
               </div>
-              <span class="resumen-num">{{ resumen.asignacionesPendientes }}</span>
+              <span class="resumen-num">{{ resumen.fotos_hoy }}</span>
             </div>
           </div>
         </div>

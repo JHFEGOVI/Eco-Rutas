@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { NgClass, NgIf } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
@@ -44,6 +44,7 @@ export class VehiculosComponente implements OnInit {
   cargando = false;
   filtroTexto = '';
   mostrarInactivos = false;
+  private pollInterval: any;
 
   get totalVehiculos()    { return this.vehiculos.data.length; }
   get totalOperativos()   { return this.vehiculos.data.filter(v => v.estado === 'operativo').length; }
@@ -57,7 +58,14 @@ export class VehiculosComponente implements OnInit {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit(): void { this.cargarVehiculos(); }
+  ngOnInit(): void {
+    this.cargarVehiculos();
+    this.pollInterval = setInterval(() => this.cargarVehiculos(), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+  }
 
   cargarVehiculos(): void {
     this.cargando = true;

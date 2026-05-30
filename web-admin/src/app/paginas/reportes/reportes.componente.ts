@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialogModule, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -94,29 +94,39 @@ export class ReportesComponente implements OnInit {
   cargando = false;
   cargandoFotoId: string | null = null;
   private cacheFotos: { [id: string]: string } = {};
+  private pollInterval: any;
 
   get totalReportes() { return this.reportes.data.length; }
 
   constructor(
     private http: HttpClient,
     private dialog: MatDialog,
-    private snack: MatSnackBar
+    private snack: MatSnackBar,
+    private cd: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.cargarReportes();
+    this.pollInterval = setInterval(() => this.cargarReportes(), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
   }
 
   cargarReportes(): void {
     this.cargando = true;
+    this.cd.detectChanges();
     this.http.get<any>(`${environment.apiUrl}/reportes`).subscribe({
       next: (res) => {
         this.reportes.data = res.data || [];
         this.cargando = false;
+        this.cd.detectChanges();
       },
       error: (err) => {
         this.mostrarError(err?.error?.message ?? 'No se pudieron cargar los reportes de foto');
         this.cargando = false;
+        this.cd.detectChanges();
       }
     });
   }
@@ -134,9 +144,11 @@ export class ReportesComponente implements OnInit {
     if (this.cargandoFotoId === reporte.id) return;
     
     this.cargandoFotoId = reporte.id;
+    this.cd.detectChanges();
     this.http.get<any>(`${environment.apiUrl}/reportes/${reporte.id}/foto`).subscribe({
       next: (res) => {
         this.cargandoFotoId = null;
+        this.cd.detectChanges();
         if (res.data && res.data.foto_base64) {
           this.cacheFotos[reporte.id] = res.data.foto_base64;
           this.dialog.open(VerFotoDialogo, {
@@ -150,6 +162,7 @@ export class ReportesComponente implements OnInit {
       },
       error: (err) => {
         this.cargandoFotoId = null;
+        this.cd.detectChanges();
         this.mostrarError(err?.error?.message ?? 'No se pudo descargar la imagen del reporte');
       }
     });

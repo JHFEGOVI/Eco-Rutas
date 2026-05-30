@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -122,7 +122,8 @@ export class AsignacionesFormDialogo implements OnInit {
   constructor(
     private fb: FormBuilder,
     private http: HttpClient,
-    public dialogRef: MatDialogRef<AsignacionesFormDialogo>
+    public dialogRef: MatDialogRef<AsignacionesFormDialogo>,
+    private cd: ChangeDetectorRef
   ) {
     this.formulario = this.fb.group({
       conductor_id: ['', Validators.required],
@@ -135,11 +136,13 @@ export class AsignacionesFormDialogo implements OnInit {
     // Cargar conductores filtrando por su rol
     this.http.get<any>(`${environment.apiUrl}/usuarios`).subscribe(res => {
       this.conductores = res.data.filter((u: any) => u.rol === 'conductor' && u.activo !== false);
+      this.cd.detectChanges();
     });
 
     // Cargar rutas disponibles
     this.http.get<any>(`${environment.apiUrl}/rutas`).subscribe(res => {
       this.rutas = res.data;
+      this.cd.detectChanges();
     });
   }
 

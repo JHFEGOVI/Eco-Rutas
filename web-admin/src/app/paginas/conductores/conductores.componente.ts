@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -36,6 +36,7 @@ export class ConductoresComponente implements OnInit {
   columnas = ['nombre', 'documento', 'email', 'usuario', 'estado', 'acciones'];
   conductores = new MatTableDataSource<Conductor>([]);
   cargando = false;
+  private pollInterval: any;
 
   get totalConductores() { return this.conductores.data.length; }
   get totalActivos()     { return this.conductores.data.filter(c => c.activo).length; }
@@ -47,7 +48,14 @@ export class ConductoresComponente implements OnInit {
     private snack: MatSnackBar,
   ) {}
 
-  ngOnInit(): void { this.cargarConductores(); }
+  ngOnInit(): void {
+    this.cargarConductores();
+    this.pollInterval = setInterval(() => this.cargarConductores(), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
+  }
 
   cargarConductores(): void {
     this.cargando = true;

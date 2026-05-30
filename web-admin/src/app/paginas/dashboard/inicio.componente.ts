@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient }   from '@angular/common/http';
 import { Router }       from '@angular/router';
@@ -8,14 +8,10 @@ import { AuthServicio }  from '../../servicios/auth.servicio';
 import { environment }   from '../../../environments/environment';
 
 interface ResumenDashboard {
-  totalVehiculos:         number;
-  vehiculosOperativos:    number;
-  vehiculosAveriados:     number;
-  totalConductores:       number;
-  conductoresActivos:     number;
-  totalRutas:             number;
-  totalAsignaciones:      number;
-  asignacionesPendientes: number;
+  recorridos_en_curso: number;
+  completadas_hoy: number;
+  vehiculos_operativos: number;
+  fotos_hoy: number;
 }
 
 @Component({
@@ -29,17 +25,15 @@ export class InicioComponente implements OnInit {
 
   nombreUsuario = '';
   cargando = true;
+  private pollInterval: any;
 
   resumen: ResumenDashboard = {
-    totalVehiculos:         0,
-    vehiculosOperativos:    0,
-    vehiculosAveriados:     0,
-    totalConductores:       0,
-    conductoresActivos:     0,
-    totalRutas:             0,
-    totalAsignaciones:      0,
-    asignacionesPendientes: 0,
+    recorridos_en_curso: 0,
+    completadas_hoy: 0,
+    vehiculos_operativos: 0,
+    fotos_hoy: 0,
   };
+
 
   constructor(
     private http:         HttpClient,
@@ -52,36 +46,34 @@ export class InicioComponente implements OnInit {
     const usuario = this.authServicio.obtenerUsuario();
     this.nombreUsuario = usuario?.nombre ?? usuario?.username ?? 'Administrador';
     this.cargarResumen();
+    this.pollInterval = setInterval(() => this.cargarResumen(), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
   }
 
   cargarResumen(): void {
     this.cargando = true;
     this.cdr.markForCheck();
 
-    Promise.all([
-      this.http.get<any>(`${environment.apiUrl}/vehiculos`).toPromise().catch(() => ({ data: [] })),
-      this.http.get<any>(`${environment.apiUrl}/usuarios`).toPromise().catch(() => ({ data: [] })),
-      this.http.get<any>(`${environment.apiUrl}/rutas`).toPromise().catch(() => ({ data: [] })),
-      this.http.get<any>(`${environment.apiUrl}/asignaciones`).toPromise().catch(() => ({ data: [] })),
-    ]).then(([vehiculos, conductores, rutas, asignaciones]) => {
-      const v = vehiculos?.data   ?? [];
-      const c = conductores?.data ?? [];
-      const r = rutas?.data       ?? [];
-      const a = asignaciones?.data ?? [];
-
-      this.resumen = {
-        totalVehiculos:         v.length,
-        vehiculosOperativos:    v.filter((x: any) => x.estado === 'operativo').length,
-        vehiculosAveriados:     v.filter((x: any) => x.estado === 'averiado').length,
-        totalConductores:       c.length,
-        conductoresActivos:     c.filter((x: any) => x.activo).length,
-        totalRutas:             r.length,
-        totalAsignaciones:      a.length,
-        asignacionesPendientes: a.filter((x: any) => x.estado === 'pendiente').length,
-      };
-
-      this.cargando = false;
-      this.cdr.markForCheck();
+    this.http.get<any>(`${environment.apiUrl}/dashboard`).subscribe({
+      next: (res) => {
+        if (res.data) {
+          this.resumen = {
+            recorridos_en_curso: res.data.recorridos_en_curso || 0,
+            completadas_hoy: res.data.completadas_hoy || 0,
+            vehiculos_operativos: res.data.vehiculos_operativos || 0,
+            fotos_hoy: res.data.fotos_hoy || 0
+          };
+        }
+        this.cargando = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cargando = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 

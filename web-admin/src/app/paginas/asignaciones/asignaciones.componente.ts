@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,6 +43,7 @@ export class AsignacionesComponente implements OnInit {
   asignacionesBase: Asignacion[] = [];
   asignaciones: Asignacion[] = [];
   cargando = false;
+  private pollInterval: any;
 
   filtroFecha: Date | null = new Date();
   filtroConductor: string = '';
@@ -63,12 +64,18 @@ export class AsignacionesComponente implements OnInit {
   ngOnInit(): void { 
     this.cargarConductores();
     this.cargarAsignaciones(); 
+    this.pollInterval = setInterval(() => this.cargarAsignaciones(), 20000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollInterval) clearInterval(this.pollInterval);
   }
 
   cargarConductores(): void {
     this.http.get<any>(`${environment.apiUrl}/usuarios`).subscribe({
       next: (res) => {
         this.conductores = (res.data || []).filter((u: any) => u.rol === 'conductor');
+        this.cd.detectChanges();
       }
     });
   }
@@ -106,6 +113,7 @@ export class AsignacionesComponente implements OnInit {
     }
 
     this.asignaciones = filtradas;
+    this.cd.detectChanges();
   }
 
   abrirModalNueva(): void {
