@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { ViewWillEnter } from '@ionic/angular';
 import {
   IonContent,
   IonSpinner,
@@ -316,7 +317,7 @@ import { Subscription, interval } from 'rxjs';
     .btn-ver-recorrido svg { width: 16px; height: 16px; fill: #e65100; }
   `],
 })
-export class RutasPagina implements OnInit, OnDestroy {
+export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
   cargando = true;
   procesandoRecorrido = false;
   rutas: any[] = [];
@@ -384,6 +385,12 @@ export class RutasPagina implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.limpiarIntervalos();
+  }
+
+  ionViewWillEnter() {
+    if (this.conductorId) {
+      this.cargarRutasAsignadas(this.conductorId);
+    }
   }
 
   actualizarHora() {
