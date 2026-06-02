@@ -466,15 +466,30 @@ export class RecorridoPagina implements OnInit, OnDestroy {
         },
         error: async (err) => {
           this.subiendoFoto = false;
-          await this.mostrarError(err?.error?.message || 'No se pudo enviar la foto de reporte');
+          console.error('Error HTTP al subir foto:', err);
+          const msg = err?.error?.message || err?.message || 'Error de red o servidor al subir foto';
+          await this.mostrarError('No se pudo enviar la foto de reporte: ' + msg);
         }
       });
     } catch (err: any) {
+      this.subiendoFoto = false;
+      console.error('Error en try-catch de tomarFotoReporte:', err);
+      
+      let errorMsg = '';
+      if (typeof err === 'string') {
+        errorMsg = err;
+      } else if (err && err.message) {
+        errorMsg = err.message;
+      } else {
+        try { errorMsg = JSON.stringify(err); } catch(e) { errorMsg = 'Objeto de error desconocido'; }
+      }
+
       // El usuario canceló la cámara — no mostrar error
-      if (err?.message?.includes('cancelled') || err?.message?.includes('canceled') || err?.message?.includes('No image')) {
+      const msgLower = errorMsg.toLowerCase();
+      if (msgLower.includes('cancel') || msgLower.includes('no image')) {
         return;
       }
-      await this.mostrarError('Error al acceder a la cámara');
+      await this.mostrarError('Error al acceder a la cámara: ' + errorMsg);
     }
   }
 
