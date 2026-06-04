@@ -205,4 +205,184 @@ tr.mat-mdc-row:last-child td { border-bottom: none !important; }
 .filtro-btn.inactivo.activo { color: #757575; }
 .filtro-btn:not(.activo) .dot {
   opacity: 0.7;
-}
+}
+/* ==========================================
+   RESPONSIVE ECO-RUTAS ADMIN
+   ========================================== */
+
+@media (max-width: 1024px) {
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .cabecera {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cabecera-acciones,
+  .filtros-header {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .tabla-panel {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tabla {
+    min-width: 900px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 0.8rem;
+  }
+
+  .cabecera {
+    padding: 1rem;
+  }
+
+  .titulo-seccion {
+    font-size: 1rem;
+  }
+
+  .subtitulo-seccion {
+    font-size: 0.65rem;
+  }
+
+  .cabecera-acciones,
+  .filtros-header {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .buscador {
+    width: 100%;
+  }
+
+  .buscador-input {
+    width: 100%;
+  }
+
+  .btn-nuevo {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .filtro-campo-header {
+    width: 100%;
+  }
+
+  .tabla-panel {
+    overflow-x: auto;
+    border-radius: 12px;
+  }
+
+  .tabla {
+    min-width: 800px;
+  }
+
+  th.mat-mdc-header-cell,
+  td.mat-mdc-cell {
+    padding: 0.7rem;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-valor {
+    font-size: 1.2rem;
+  }
+
+  .titulo-seccion {
+    font-size: 0.95rem;
+  }
+
+  .tabla {
+    min-width: 750px;
+  }
+
+  .btn-nuevo {
+    font-size: 0.72rem;
+    padding: 0.6rem;
+  }
+
+  .chip {
+    font-size: 0.62rem;
+  }
+
+  .acciones {
+    flex-wrap: nowrap;
+  }
+}
+@media (max-width: 768px) {
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .stat-card {
+    padding: 0.7rem;
+    border-radius: 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.05);
+  }
+
+  .stat-top {
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 0.55rem;
+  }
+
+  .stat-icono {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stat-icono mat-icon {
+    font-size: 13px !important;
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  .stat-valor {
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+  }
+
+  .stat-tag {
+    font-size: 0.52rem;
+    padding: 2px 6px;
+  }
+
+}
+.stat-card {
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #fafafa 100%
+  );
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.08);
+}

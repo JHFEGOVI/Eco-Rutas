@@ -287,8 +287,8 @@ import { Subscription, interval } from 'rxjs';
     .pill-dot { width: 5px; height: 5px; border-radius: 50%; }
     .pill--pendiente { background: #e3f2fd; color: #1565c0; }
     .pill--pendiente .pill-dot { background: #1565c0; }
-    .pill--en_curso { background: #fff3e0; color: #e65100; }
-    .pill--en_curso .pill-dot { background: #e65100; }
+    .pill--en_curso { background: #e5ffda; color: #032000; }
+    .pill--en_curso .pill-dot { background: #25f700; }
     .pill--completada { background: #e8f5e9; color: #1e8c34; }
     .pill--completada .pill-dot { background: #1e8c34; }
     .pill--cancelada { background: #f5f5f5; color: #757575; }
@@ -309,12 +309,12 @@ import { Subscription, interval } from 'rxjs';
 
     .btn-ver-recorrido {
       width: 100%; height: 42px;
-      background: #fff3e0; color: #e65100; border: 1.5px solid #ffcc80;
+      background: #e9fdd6; color: #003102; border: 1.5px solid #003a03;
       border-radius: 10px; font-size: 0.82rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center; gap: 6px;
       cursor: pointer; font-family: inherit;
     }
-    .btn-ver-recorrido svg { width: 16px; height: 16px; fill: #e65100; }
+    .btn-ver-recorrido svg { width: 16px; height: 16px; fill: #008d05; }
   `],
 })
 export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
