@@ -35,12 +35,15 @@ interface Conductor {
 export class ConductoresComponente implements OnInit {
   columnas = ['nombre', 'documento', 'email', 'usuario', 'estado', 'acciones'];
   conductores = new MatTableDataSource<Conductor>([]);
+  conductoresOriginales: Conductor[] = [];
   cargando = false;
+  filtroTexto = '';
+  filtroEstado: 'todos' | 'activos' | 'inactivos' = 'todos';
   private pollInterval: any;
 
-  get totalConductores() { return this.conductores.data.length; }
-  get totalActivos()     { return this.conductores.data.filter(c => c.activo).length; }
-  get totalInactivos()   { return this.conductores.data.filter(c => !c.activo).length; }
+  get totalConductores() { return this.conductoresOriginales.length; }
+  get totalActivos()     { return this.conductoresOriginales.filter(c => c.activo).length; }
+  get totalInactivos()   { return this.conductoresOriginales.filter(c => !c.activo).length; }
 
   constructor(
     private http: HttpClient,
@@ -60,13 +63,50 @@ export class ConductoresComponente implements OnInit {
   cargarConductores(): void {
     this.cargando = true;
     this.http.get<any>(`${environment.apiUrl}/usuarios`).subscribe({
-      next: (res) => { this.conductores.data = res.data; this.cargando = false; },
+      next: (res) => { 
+        this.conductoresOriginales = res.data || []; 
+        this.aplicarFiltros();
+        this.cargando = false; 
+      },
       error: (err) => {
         this.mostrarError(err?.error?.message ?? 'No se pudieron cargar los conductores');
         this.cargando = false;
       },
     });
   }
+
+  aplicarFiltro(text?: string): void {
+    this.filtroTexto = (text ?? this.filtroTexto) as string;
+    this.aplicarFiltros();
+  }
+
+  cambiarFiltroEstado(estado: 'todos' | 'activos' | 'inactivos'): void {
+    this.filtroEstado = estado;
+    this.aplicarFiltros();
+  }
+
+  aplicarFiltros(): void {
+    let filtrados = [...this.conductoresOriginales];
+
+    if (this.filtroEstado === 'activos') {
+      filtrados = filtrados.filter(c => c.activo);
+    } else if (this.filtroEstado === 'inactivos') {
+      filtrados = filtrados.filter(c => !c.activo);
+    }
+
+    this.conductores.data = filtrados;
+
+    this.conductores.filterPredicate = (data: Conductor, filter: string) => {
+      const text = filter.trim().toLowerCase();
+      if (!text) return true;
+      return (data.nombre || '').toLowerCase().includes(text)
+        || (data.documento || '').toLowerCase().includes(text)
+        || (data.email || '').toLowerCase().includes(text)
+        || (data.username || '').toLowerCase().includes(text);
+    };
+    this.conductores.filter = this.filtroTexto.trim().toLowerCase();
+  }
+
 
   inicialesConductor(nombre: string): string {
     return nombre?.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() ?? '??';

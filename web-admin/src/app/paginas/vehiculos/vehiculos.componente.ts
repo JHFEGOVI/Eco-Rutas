@@ -41,15 +41,16 @@ interface Vehiculo {
 export class VehiculosComponente implements OnInit {
   columnas = ['placa', 'marca', 'modelo', 'capacidad_kg', 'estado', 'acciones'];
   vehiculos = new MatTableDataSource<Vehiculo>([]);
+  vehiculosOriginales: Vehiculo[] = [];
   cargando = false;
   filtroTexto = '';
-  mostrarInactivos = false;
+  filtroEstado: 'todos' | 'operativo' | 'averiado' | 'inactivo' = 'todos';
   private pollInterval: any;
 
-  get totalVehiculos()    { return this.vehiculos.data.length; }
-  get totalOperativos()   { return this.vehiculos.data.filter(v => v.estado === 'operativo').length; }
-  get totalAveriados()    { return this.vehiculos.data.filter(v => v.estado === 'averiado').length; }
-  get totalInactivos()    { return this.vehiculos.data.filter(v => v.estado === 'inactivo').length; }
+  get totalVehiculos()    { return this.vehiculosOriginales.length; }
+  get totalOperativos()   { return this.vehiculosOriginales.filter(v => v.estado === 'operativo').length; }
+  get totalAveriados()    { return this.vehiculosOriginales.filter(v => v.estado === 'averiado').length; }
+  get totalInactivos()    { return this.vehiculosOriginales.filter(v => v.estado === 'inactivo').length; }
 
   constructor(
     private http: HttpClient,
@@ -72,19 +73,8 @@ export class VehiculosComponente implements OnInit {
     this.cdr.markForCheck(); // Forzar detección al iniciar
     this.http.get<any>(`${environment.apiUrl}/vehiculos`).subscribe({
       next: (res) => {
-        const all: Vehiculo[] = res.data || [];
-        this.vehiculos.data = this.mostrarInactivos
-          ? [...all]
-          : [...all.filter((v: any) => v.estado !== 'inactivo')];
-
-        this.vehiculos.filterPredicate = (data: Vehiculo, filter: string) => {
-          const text = filter.trim().toLowerCase();
-          if (!text) return true;
-          return (data.placa || '').toLowerCase().includes(text)
-            || (data.marca || '').toLowerCase().includes(text)
-            || (data.modelo || '').toLowerCase().includes(text);
-        };
-        this.vehiculos.filter = this.filtroTexto.trim().toLowerCase();
+        this.vehiculosOriginales = res.data || [];
+        this.aplicarFiltros();
         this.cargando = false;
         this.cdr.markForCheck(); // Forzar detección al completar
       },
@@ -98,13 +88,33 @@ export class VehiculosComponente implements OnInit {
 
   aplicarFiltro(text?: string): void {
     this.filtroTexto = (text ?? this.filtroTexto) as string;
+    this.aplicarFiltros();
+  }
+
+  cambiarFiltroEstado(estado: 'todos' | 'operativo' | 'averiado' | 'inactivo'): void {
+    this.filtroEstado = estado;
+    this.aplicarFiltros();
+  }
+
+  aplicarFiltros(): void {
+    let filtrados = [...this.vehiculosOriginales];
+
+    if (this.filtroEstado !== 'todos') {
+      filtrados = filtrados.filter(v => v.estado === this.filtroEstado);
+    }
+
+    this.vehiculos.data = filtrados;
+
+    this.vehiculos.filterPredicate = (data: Vehiculo, filter: string) => {
+      const text = filter.trim().toLowerCase();
+      if (!text) return true;
+      return (data.placa || '').toLowerCase().includes(text)
+        || (data.marca || '').toLowerCase().includes(text)
+        || (data.modelo || '').toLowerCase().includes(text);
+    };
     this.vehiculos.filter = this.filtroTexto.trim().toLowerCase();
   }
 
-  toggleMostrarInactivos(): void {
-    this.mostrarInactivos = !this.mostrarInactivos;
-    this.cargarVehiculos();
-  }
 
   abrirFormulario(vehiculo?: Vehiculo): void {
     const ref = this.dialog.open(VehiculoFormDialogo, {

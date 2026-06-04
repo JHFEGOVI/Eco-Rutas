@@ -17,9 +17,10 @@
 .stat-tag.azul  { background:#e3f2fd; color:#1565c0; }
 .stat-tag.gris  { background:#f5f5f5; color:#757575; }
 
-.cabecera { display:flex; align-items:center; justify-content:space-between; background:#fff; padding:1rem 1.25rem; border-radius:12px; border:1px solid #eee; margin-bottom:1rem; }
+.cabecera { display:flex; align-items:center; justify-content:space-between; background:#fff; padding:1rem 1.25rem; border-radius:12px; border:1px solid #eee; margin-bottom:1rem; gap: 1rem; flex-wrap: wrap; }
 .titulo-seccion { margin:0; font-size:1.1rem; font-weight:900; color:#111; }
 .subtitulo-seccion { font-size:0.7rem; color:#9e9e9e; display:block; margin-top:2px; }
+.cabecera-acciones { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
 .btn-nuevo { display:flex; align-items:center; gap:6px; padding:0.5rem 1rem; background:#1e8c34; color:#fff; border:none; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:'Nunito',sans-serif; transition:background 0.15s,transform 0.1s; box-shadow:0 2px 8px rgba(30,140,52,0.3); }
 .btn-nuevo:hover { background:#145a24; transform:translateY(-1px); }
@@ -52,6 +53,73 @@ tr.mat-mdc-row:last-child td { border-bottom:none !important; }
 .btn-eliminar{ background:#fdecea; color:#c62828; } .btn-eliminar:hover{ background:#ffcdd2; transform:scale(1.1); }
 .btn-activar { background:#e3f2fd; color:#1565c0; } .btn-activar:hover { background:#bbdefb; transform:scale(1.1); }
 
-.vacio { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:3rem; color:#bdbdbd; gap:8px; }
 .vacio mat-icon { font-size:40px !important; width:40px !important; height:40px !important; color:#e0e0e0; }
 .vacio p { font-size:0.82rem; }
+
+/* Buscador */
+.buscador {
+  display: flex; align-items: center; gap: 7px;
+  padding: 0.4rem 0.85rem;
+  border: 1.5px solid #eee; border-radius: 8px;
+  background: #fafafa;
+  transition: border-color 0.2s;
+}
+.buscador:focus-within { border-color: #1e8c34; background: #fff; }
+.buscador-icono { font-size: 16px !important; width: 16px !important; height: 16px !important; color: #bdbdbd; }
+.buscador-input {
+  border: none; background: none; outline: none;
+  font-size: 0.78rem; color: #333; width: 200px;
+  font-family: 'Nunito', sans-serif;
+}
+.buscador-input::placeholder { color: #ccc; }
+
+/* Filtros de estado */
+.filtros-estado {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f7f5;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid #e2e8e2;
+}
+.filtro-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: #757575;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Nunito', sans-serif;
+}
+.filtro-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  color: #333;
+}
+.filtro-btn.activo {
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.filtro-btn .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #9e9e9e;
+  transition: transform 0.15s ease;
+}
+.filtro-btn.activo .dot {
+  transform: scale(1.2);
+}
+.filtro-btn.operativo .dot { background: #1e8c34; }
+.filtro-btn.operativo.activo { color: #1e8c34; }
+.filtro-btn.inactivo .dot { background: #757575; }
+.filtro-btn.inactivo.activo { color: #757575; }
+.filtro-btn:not(.activo) .dot {
+  opacity: 0.7;
+}

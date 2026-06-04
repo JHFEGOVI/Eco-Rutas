@@ -49,10 +49,36 @@
         (input)="aplicarFiltro($any($event.target).value)"
       />
     </div>
-    <label class="toggle-label">
-      <input type="checkbox" (change)="toggleMostrarInactivos()" />
-      <span>Ver inactivos</span>
-    </label>
+    <div class="filtros-estado">
+      <button
+        type="button"
+        class="filtro-btn"
+        [class.activo]="filtroEstado === 'todos'"
+        (click)="cambiarFiltroEstado('todos')">
+        Todos
+      </button>
+      <button
+        type="button"
+        class="filtro-btn operativo"
+        [class.activo]="filtroEstado === 'operativo'"
+        (click)="cambiarFiltroEstado('operativo')">
+        <span class="dot"></span> Operativos
+      </button>
+      <button
+        type="button"
+        class="filtro-btn averiado"
+        [class.activo]="filtroEstado === 'averiado'"
+        (click)="cambiarFiltroEstado('averiado')">
+        <span class="dot"></span> Averiados
+      </button>
+      <button
+        type="button"
+        class="filtro-btn inactivo"
+        [class.activo]="filtroEstado === 'inactivo'"
+        (click)="cambiarFiltroEstado('inactivo')">
+        <span class="dot"></span> Inactivos
+      </button>
+    </div>
     <button class="btn-nuevo" (click)="abrirFormulario()">
       <mat-icon>add</mat-icon>
       Nuevo vehículo
