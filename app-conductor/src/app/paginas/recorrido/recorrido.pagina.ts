@@ -15,14 +15,13 @@ import {
   IonTitle,
   IonToolbar,
   IonSpinner,
-  IonIcon,
   IonButtons,
   IonBackButton,
   ToastController
 } from '@ionic/angular/standalone';
 import { environment } from '../../../environments/environment';
 import { addIcons } from 'ionicons';
-import { checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, flagOutline } from 'ionicons/icons';
+import { checkmarkDoneOutline, arrowBackOutline } from 'ionicons/icons';
 
 const DB_NOMBRE = 'ecorrutas_offline';
 
@@ -41,294 +40,449 @@ const DB_NOMBRE = 'ecorrutas_offline';
     IonBackButton,
   ],
   template: `
-    <ion-header>
+    <ion-header class="ion-no-border">
       <ion-toolbar class="toolbar-verde">
         <ion-buttons slot="start">
-          <ion-back-button defaultHref="/rutas"></ion-back-button>
+          <ion-back-button class="back-custom" defaultHref="/rutas"></ion-back-button>
         </ion-buttons>
-        <ion-title>Recorrido Activo</ion-title>
+        <ion-title class="toolbar-title">Recorrido activo</ion-title>
+        <div slot="end" class="live-pill">
+          <span class="live-dot"></span>
+          <span class="live-txt">EN VIVO</span>
+        </div>
       </ion-toolbar>
     </ion-header>
 
-    <ion-content [scrollY]="false" class="fondo-verde">
-      <div class="contenedor">
+    <ion-content [scrollY]="true" class="fondo">
 
-        @if (cargando) {
-          <div class="tarjeta contenedor-centrado">
-            <ion-spinner name="crescent" style="--color:#1e8c34"></ion-spinner>
-            <p class="cargando-txt">Verificando estado del recorrido...</p>
+      @if (cargando) {
+        <div class="estado-centrado">
+          <ion-spinner name="crescent" class="spinner-verde"></ion-spinner>
+          <p class="estado-txt">Verificando recorrido...</p>
+        </div>
+
+      } @else if (!recorridoActivo) {
+        <div class="estado-centrado">
+          <div class="vacio-ico">
+            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+          </div>
+          <p class="vacio-titulo">Sin recorrido activo</p>
+          <p class="vacio-sub">No tienes ningún recorrido en curso ahora mismo</p>
+          <button class="btn-volver" (click)="irARutas()">
+            <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+            Volver a mis rutas
+          </button>
+        </div>
+
+      } @else {
+        <div class="body">
+
+          <!-- ── RUTA CARD ── -->
+          <div class="rcard">
+            <div class="rtop">
+              <div class="rico-wrap">
+                <div class="rico">
+                  <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                </div>
+                <div class="rinfo">
+                  <p class="rnombre">{{ recorridoActivo.ruta_id }}</p>
+                  <p class="rfecha">{{ fechaHoy() }}</p>
+                </div>
+              </div>
+              <span class="chip"><span class="cdot"></span>En curso</span>
+            </div>
           </div>
 
-        } @else if (!recorridoActivo) {
-          <div class="tarjeta contenedor-centrado">
-            <div class="puntos">
-              <span class="punto rojo"></span>
-              <span class="punto amarillo"></span>
-              <span class="punto verde-dot"></span>
-            </div>
-            <svg class="icono-vacio" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
-            <h2 class="msg-vacio-titulo">Sin recorrido activo</h2>
-            <p class="msg-vacio-sub">No tienes ningún recorrido en curso en este momento</p>
-            <button class="btn-finalizar" routerLink="/rutas" style="margin-top:16px">
-              <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-              Volver a mis rutas
-            </button>
-          </div>
-
-        } @else {
-          <div class="tarjeta">
-            <!-- Puntos mac -->
-            <div class="puntos">
-              <span class="punto rojo"></span>
-              <span class="punto amarillo"></span>
-              <span class="punto verde-dot"></span>
-            </div>
-
-            <!-- Logo + título -->
-            <div class="logo-area">
-              <div class="logo-circulo">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="#1e8c34">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/>
-                </svg>
+          <!-- ── INFO CARD ── -->
+          <div class="info-card">
+            <div class="irow">
+              <div class="iico ig">
+                <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
               </div>
-              <p class="logo-sub">RECORRIDO ACTIVO</p>
-            </div>
-
-            <!-- Ruta -->
-            <div class="campo-grupo">
-              <span class="campo-label">Ruta</span>
-              <span class="campo-valor">{{ recorridoActivo.ruta_nombre || recorridoActivo.ruta_id }}</span>
-            </div>
-
-            <!-- Vehículo -->
-            <div class="campo-grupo">
-              <span class="campo-label">Vehículo asignado</span>
-              <span class="campo-valor verde">{{ recorridoActivo.placa }} · {{ recorridoActivo.marca }}</span>
-            </div>
-
-            <!-- Hora inicio -->
-            <div class="campo-grupo">
-              <span class="campo-label">Hora de inicio</span>
-              <span class="campo-valor">{{ formatearHora(recorridoActivo.timestamp_inicio) }}</span>
-            </div>
-
-            <!-- GPS -->
-            <div class="campo-grupo sin-borde">
-              <span class="campo-label">Ubicación actual</span>
-              @if (coordenadas) {
-                <span class="gps-activo">
-                  <span class="gps-pulso"></span>
-                  Lat: {{ coordenadas.lat | number:'1.4-4' }}, Lon: {{ coordenadas.lon | number:'1.4-4' }}
-                </span>
-              } @else {
-                <span class="gps-buscando">
-                  <ion-spinner name="dots" style="width:14px;height:14px;--color:#ff8f00"></ion-spinner>
-                  Detectando satélites GPS...
-                </span>
-              }
-            </div>
-
-            @if (pendientesSQLite > 0) {
-              <div class="alerta-offline">
-                ⚠️ {{ pendientesSQLite }} posiciones sin sincronizar
+              <div class="itxt">
+                <span class="ilbl">Vehículo</span>
+                <span class="ival g">{{ recorridoActivo.placa }} · {{ recorridoActivo.marca }}</span>
               </div>
-            }
+            </div>
 
-            <div class="divisor"></div>
+            <div class="irow">
+              <div class="iico ib">
+                <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/></svg>
+              </div>
+              <div class="itxt">
+                <span class="ilbl">Hora de inicio</span>
+                <span class="ival">{{ formatearHora(recorridoActivo.timestamp_inicio) }}</span>
+              </div>
+            </div>
 
-            <!-- Botón de reporte de foto -->
-            <div class="reporte-row" (click)="!subiendoFoto && tomarFotoReporte()">
-              <button class="btn-reporte" [disabled]="subiendoFoto">
-                @if (subiendoFoto) {
-                  <ion-spinner name="crescent" style="width:20px;height:20px;--color:#fff"></ion-spinner>
+            <div class="irow sin-borde">
+              <div class="iico ig">
+                <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+              </div>
+              <div class="itxt">
+                <span class="ilbl">GPS activo</span>
+                @if (coordenadas) {
+                  <div class="gps-inline">
+                    <span class="gdot"></span>
+                    <span class="gcoords">
+                      {{ coordenadas.lat | number:'1.4-4' }} · {{ coordenadas.lon | number:'1.4-4' }}
+                    </span>
+                  </div>
                 } @else {
-                  <svg viewBox="0 0 24 24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+                  <div class="gps-buscando">
+                    <ion-spinner name="dots" class="spinner-gps"></ion-spinner>
+                    <span>Detectando GPS...</span>
+                  </div>
                 }
-              </button>
-              <div class="reporte-texto">
-                <strong>Reportar incidencia</strong>
-                <span>Toca para tomar una foto del punto actual</span>
               </div>
             </div>
-
-            <!-- Finalizar -->
-            <button
-              class="btn-finalizar"
-              (click)="finalizarRecorrido()"
-              [disabled]="procesando"
-            >
-              @if (procesando) {
-                <ion-spinner name="crescent" style="width:18px;height:18px;--color:#fff"></ion-spinner>
-                Finalizando...
-              } @else {
-                <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                Finalizar recorrido
-              }
-            </button>
-
-            <!-- Badge -->
-            <div class="badge-seguro">
-              <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-              Conexión cifrada · EcoRutas v1.0
-            </div>
           </div>
-        }
 
-      </div>
+          <!-- ── ALERTA OFFLINE ── -->
+          @if (pendientesSQLite > 0) {
+            <div class="alerta-offline">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              {{ pendientesSQLite }} posición{{ pendientesSQLite !== 1 ? 'es' : '' }} sin sincronizar
+            </div>
+          }
+
+          <!-- ── REPORTAR INCIDENCIA ── -->
+          <div class="rep-card" (click)="!subiendoFoto && tomarFotoReporte()">
+            <div class="rep-ico">
+              @if (subiendoFoto) {
+                <ion-spinner name="crescent" class="spinner-rep"></ion-spinner>
+              } @else {
+                <svg viewBox="0 0 24 24"><path d="M12 15.2c-1.77 0-3.2-1.43-3.2-3.2S10.23 8.8 12 8.8s3.2 1.43 3.2 3.2-1.43 3.2-3.2 3.2zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+              }
+            </div>
+            <div class="rep-texto">
+              <strong>Reportar incidencia</strong>
+              <span>Toca para tomar foto del punto actual</span>
+            </div>
+            <svg class="rep-arr" viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+          </div>
+
+          <!-- ── FINALIZAR ── -->
+          <button class="btn-fin" (click)="finalizarRecorrido()" [disabled]="procesando">
+            @if (procesando) {
+              <ion-spinner name="crescent" class="spinner-btn"></ion-spinner>
+              Finalizando...
+            } @else {
+              <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Finalizar recorrido
+            }
+          </button>
+
+          <div class="badge-seguro">
+            <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+            Conexión cifrada · EcoRutas v1.0
+          </div>
+
+        </div>
+      }
+
     </ion-content>
   `,
   styles: [`
-    /* Fondo igual al login */
-    .fondo-verde { --background: #1e8c34; }
 
-    .contenedor {
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      min-height: 100%;
-      padding: 20px 16px 32px;
+    /* ── Fondo ── */
+    .fondo { --background: #f0f4f0; }
+
+    /* ── Toolbar ── */
+    ion-toolbar.toolbar-verde {
+      --background: #1e8c34;
+      --color: #fff;
+      --border-width: 0;
+      --padding-top: env(safe-area-inset-top);
     }
+    .toolbar-title {
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 900;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .back-custom { --color: #fff; }
 
-    /* ── Tarjeta blanca ── */
-    .tarjeta {
-      width: 100%;
-      max-width: 400px;
-      background: #fff;
+    /* Pill EN VIVO */
+    .live-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255,255,255,0.18);
       border-radius: 20px;
-      padding: 18px 20px 20px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+      padding: 5px 11px;
+      margin-right: 12px;
+    }
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #7deb9a;
+      animation: blink 1.1s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.15} }
+    .live-txt {
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .4px;
     }
 
-    /* ── Estado vacío ── */
-    .contenedor-centrado {
+    /* ── Body: ocupa todo el alto disponible ── */
+    .body {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 12px 14px;
+      padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      min-height: 100%;
+    }
+
+    /* ── Estado vacío / cargando ── */
+    .estado-centrado {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      min-height: 70vh;
+      padding: 24px;
       text-align: center;
-      padding-top: 24px;
-      padding-bottom: 8px;
+      gap: 12px;
     }
-    .icono-vacio { width: 52px; height: 52px; fill: #c8e6c9; margin-bottom: 10px; }
-    .msg-vacio-titulo { font-size: 1rem; font-weight: 700; color: #333; }
-    .msg-vacio-sub { font-size: 0.8rem; color: #9e9e9e; margin-top: 4px; }
-    .cargando-txt { color: #9e9e9e; font-size: 0.85rem; margin-top: 12px; }
-
-    /* ── Puntos mac ── */
-    .puntos { display: flex; gap: 6px; margin-bottom: 14px; }
-    .punto { width: 11px; height: 11px; border-radius: 50%; }
-    .rojo     { background: #ff5f57; }
-    .amarillo { background: #febc2e; }
-    .verde-dot{ background: #28c840; }
-
-    /* ── Logo ── */
-    .logo-area {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .logo-circulo {
-      width: 76px; height: 76px;
-      background: #f0faf1;
+    .spinner-verde { --color: #1e8c34; }
+    .estado-txt { font-size: 0.85rem; color: #9e9e9e; }
+    .vacio-ico {
+      width: 68px; height: 68px;
+      background: #e8f5e9;
       border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
-      border: 3px solid #c8e6c9;
-      margin-bottom: 6px;
-      animation: pulso 3s ease-in-out infinite;
     }
-    @keyframes pulso {
-      0%,100% { box-shadow: 0 0 0 0   rgba(30,140,52,0.2); }
-      50%      { box-shadow: 0 0 0 8px rgba(30,140,52,0);   }
+    .vacio-ico svg { width: 32px; height: 32px; fill: #1e8c34; }
+    .vacio-titulo { font-size: 1rem; font-weight: 800; color: #333; }
+    .vacio-sub { font-size: 0.78rem; color: #9e9e9e; }
+    .btn-volver {
+      display: flex; align-items: center; gap: 6px;
+      background: #1e8c34; color: #fff;
+      border: none; border-radius: 12px;
+      padding: 12px 20px; font-size: 0.85rem; font-weight: 800;
+      font-family: inherit; cursor: pointer;
+      margin-top: 8px;
     }
-    .logo-sub { font-size: 0.55rem; font-weight: 700; color: #9e9e9e; letter-spacing: 2px; }
+    .btn-volver svg { fill: #fff; width: 16px; height: 16px; }
 
-    /* ── Campos info ── */
-    .campo-grupo {
-      display: flex; flex-direction: column; gap: 2px;
-      margin-bottom: 11px; padding-bottom: 11px;
-      border-bottom: 1px solid #f0f0f0;
+    /* ── Ruta card ── */
+    .rcard {
+      background: #fff;
+      border-radius: 16px;
+      padding: 13px 14px;
+      border: 1px solid #eee;
     }
-    .campo-grupo.sin-borde { border-bottom: none; margin-bottom: 0; }
-    .campo-label { font-size: 0.6rem; font-weight: 700; color: #9e9e9e; text-transform: uppercase; letter-spacing: 0.8px; }
-    .campo-valor { font-size: 0.88rem; color: #212121; font-weight: 600; }
-    .campo-valor.verde { color: #1e8c34; }
+    .rtop {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .rico-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      min-width: 0;
+    }
+    .rico {
+      width: 38px; height: 38px;
+      background: #e8f5e9;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .rico svg { fill: #1e8c34; width: 18px; height: 18px; }
+    .rinfo { flex: 1; min-width: 0; }
+    .rnombre {
+      font-size: 11px;
+      font-weight: 800;
+      color: #1e8c34;
+      font-family: monospace;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin: 0 0 2px;
+    }
+    .rfecha { font-size: 0.65rem; color: #aaa; margin: 0; font-weight: 500; }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #e8f5e9;
+      color: #1b5e20;
+      border: 1px solid #c8e6c9;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .cdot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: #2e7d32;
+      animation: blink 1s infinite;
+    }
 
-    /* ── GPS ── */
-    .gps-activo {
-      display: flex; align-items: center; gap: 7px;
-      color: #2e7d32; font-size: 0.82rem; font-weight: 500;
+    /* ── Info card ── */
+    .info-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #eee;
+      overflow: hidden;
     }
-    .gps-pulso {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: #4caf50; flex-shrink: 0;
-      animation: blink 1.2s infinite;
+    .irow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid #f2f2f2;
     }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
+    .irow.sin-borde { border-bottom: none; }
+    .iico {
+      width: 38px; height: 38px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ig { background: #e8f5e9; } .ig svg { fill: #1e8c34; }
+    .ib { background: #e3f2fd; } .ib svg { fill: #1565c0; }
+    .iico svg { width: 18px; height: 18px; }
+    .itxt { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+    .ilbl {
+      font-size: 9px;
+      font-weight: 700;
+      color: #bbb;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+    .ival {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #111;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ival.g { color: #1e8c34; }
+
+    /* GPS */
+    .gps-inline { display: flex; align-items: center; gap: 6px; }
+    .gdot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #43a047;
+      animation: blink 1s infinite;
+      flex-shrink: 0;
+    }
+    .gcoords { font-size: 0.8rem; font-weight: 700; color: #2e7d32; }
     .gps-buscando {
       display: flex; align-items: center; gap: 6px;
-      color: #ff8f00; font-size: 0.82rem;
+      color: #f57c00; font-size: 0.78rem;
     }
+    .spinner-gps { --color: #f57c00; width: 14px; height: 14px; }
 
     /* ── Alerta offline ── */
     .alerta-offline {
-      background: #fff3e0; border: 1px solid #ffcc80;
-      border-radius: 8px; padding: 6px 10px;
-      font-size: 0.75rem; color: #e65100; font-weight: 600;
-      margin-top: 8px;
+      background: #fff3e0;
+      border: 1px solid #ffcc80;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 0.75rem;
+      color: #e65100;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
+    .alerta-offline svg { fill: #e65100; width: 16px; height: 16px; flex-shrink: 0; }
 
-    /* ── Divisor ── */
-    .divisor { height: 1px; background: #f0f0f0; margin: 12px 0; }
-
-    /* ── Reporte fila ── */
-    .reporte-row {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 12px;
-      background: #fff8e1; border-radius: 12px;
-      padding: 10px 12px;
-      border: 1px solid #ffe082;
+    /* ── Reporte ── */
+    .rep-card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1.5px solid #ffe082;
+      padding: 14px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       cursor: pointer;
+      transition: transform .1s;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn-reporte {
-      width: 44px; height: 44px; border-radius: 50%;
-      background: #ff8f00; border: none;
+    .rep-card:active { transform: scale(.98); }
+    .rep-ico {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      background: #ff8f00;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0; cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
+      flex-shrink: 0;
     }
-    .btn-reporte:active:not(:disabled) { background: #e65100; transform: scale(0.94); }
-    .btn-reporte:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-reporte svg { width: 20px; height: 20px; fill: #fff; }
-    .reporte-texto strong { display: block; font-size: 0.8rem; color: #5d4037; font-weight: 700; }
-    .reporte-texto span   { font-size: 0.72rem; color: #795548; }
+    .rep-ico svg { fill: #fff; width: 22px; height: 22px; }
+    .spinner-rep { --color: #fff; width: 22px; height: 22px; }
+    .rep-texto { flex: 1; min-width: 0; }
+    .rep-texto strong {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #4e342e;
+    }
+    .rep-texto span { font-size: 0.7rem; color: #a1887f; }
+    .rep-arr { fill: #ddd; width: 16px; height: 16px; flex-shrink: 0; }
 
     /* ── Botón finalizar ── */
-    .btn-finalizar {
-      width: 100%; height: 48px;
-      background: #1e8c34; color: #fff;
-      border: none; border-radius: 12px;
-      font-size: 0.95rem; font-weight: 900;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      box-shadow: 0 4px 14px rgba(30,140,52,0.35);
-      cursor: pointer; font-family: inherit;
-      transition: background 0.15s, transform 0.1s;
+    .btn-fin {
+      width: 100%;
+      height: 52px;
+      background: #1e8c34;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(30,140,52,.30);
+      transition: all .15s;
+      -webkit-tap-highlight-color: transparent;
+      margin-top: auto;
     }
-    .btn-finalizar:active:not(:disabled) { background: #145a24; transform: scale(0.98); }
-    .btn-finalizar:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-finalizar svg { width: 18px; height: 18px; fill: #fff; }
+    .btn-fin:active:not(:disabled) { transform: scale(.98); background: #166628; }
+    .btn-fin:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-fin svg { fill: #fff; width: 18px; height: 18px; }
+    .spinner-btn { --color: #fff; width: 18px; height: 18px; }
 
-    /* ── Badge ── */
+    /* ── Badge seguro ── */
     .badge-seguro {
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-      font-size: 0.6rem; color: #bdbdbd; margin-top: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 9px;
+      color: #ccc;
+      font-weight: 600;
+      padding: 4px 0 2px;
     }
-    .badge-seguro svg { width: 11px; height: 11px; fill: #bdbdbd; }
-    
-    .toolbar-verde {
-     --background: #1e8c34;
-     --color: white;
-}
+    .badge-seguro svg { fill: #ccc; width: 10px; height: 10px; }
 
+    /* ── Responsive — pantallas grandes (tablet) ── */
+    @media (min-width: 500px) {
+      .body {
+        max-width: 480px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
   `]
 })
 export class RecorridoPagina implements OnInit, OnDestroy {
@@ -357,7 +511,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     private toastController: ToastController,
     private ngZone: NgZone
   ) {
-    addIcons({ checkmarkDoneOutline, arrowBackOutline, closeCircleOutline, locationOutline, flagOutline });
+    addIcons({ checkmarkDoneOutline, arrowBackOutline });
   }
 
   async ngOnInit() {
@@ -368,8 +522,17 @@ export class RecorridoPagina implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.detenerTrackingYIntervalos();
-    this.cerrarSQLite();
+    this.detenerTrackingYIntervalos().then(() => this.cerrarSQLite());
+  }
+
+  fechaHoy(): string {
+    return new Date().toLocaleDateString('es-CO', {
+      day: '2-digit', month: 'long', year: 'numeric'
+    });
+  }
+
+  irARutas(): void {
+    this.router.navigate(['/rutas']);
   }
 
   // ─── SQLite ───────────────────────────────────────────────────────────────
@@ -433,6 +596,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
   async subirPendientesSQLite() {
     if (!this.db || !this.recorridoActivo?.id) return;
     try {
+      await this.db.run(`DELETE FROM posiciones_pendientes WHERE intentos >= 5`);
       const res = await this.db.query(
         `SELECT * FROM posiciones_pendientes WHERE recorrido_id = ? ORDER BY id ASC`,
         [this.recorridoActivo.id]
@@ -460,17 +624,13 @@ export class RecorridoPagina implements OnInit, OnDestroy {
     }
   }
 
-  // ─── GPS y recorrido ──────────────────────────────────────────────────────
+  // ─── GPS ─────────────────────────────────────────────────────────────────
 
   async solicitarPermisosGps() {
     try {
       const permisos = await Geolocation.requestPermissions();
       if (permisos.location !== 'granted') {
-        const t = await this.toastController.create({
-          message: 'Sin permisos de GPS. La ruta no transmitirá la ubicación.',
-          duration: 5000, color: 'warning', position: 'bottom'
-        });
-        await t.present();
+        await this.mostrarError('Sin permisos de GPS. La ruta no transmitirá la ubicación.');
       }
     } catch {
       console.warn('Dispositivo no soporta solicitud previa de permisos GPS');
@@ -601,17 +761,14 @@ export class RecorridoPagina implements OnInit, OnDestroy {
         },
         error: async (err) => {
           this.subiendoFoto = false;
-          const msg = err?.error?.message || err?.message || 'Error de red o servidor al subir foto';
-          await this.mostrarError('No se pudo enviar la foto de reporte: ' + msg);
+          await this.mostrarError('No se pudo enviar la foto: ' + (err?.error?.message || 'Error de red'));
         }
       });
     } catch (err: any) {
       this.subiendoFoto = false;
-      let errorMsg = typeof err === 'string' ? err : err?.message || '';
-      try { if (!errorMsg) errorMsg = JSON.stringify(err); } catch { errorMsg = 'Error desconocido'; }
-      const msgLower = errorMsg.toLowerCase();
-      if (msgLower.includes('cancel') || msgLower.includes('no image')) return;
-      await this.mostrarError('Error al acceder a la cámara: ' + errorMsg);
+      const msg = typeof err === 'string' ? err : err?.message || '';
+      if (msg.toLowerCase().includes('cancel') || msg.toLowerCase().includes('no image')) return;
+      await this.mostrarError('Error al acceder a la cámara: ' + msg);
     }
   }
 
@@ -631,6 +788,7 @@ export class RecorridoPagina implements OnInit, OnDestroy {
       },
       error: async (err) => {
         this.procesando = false;
+        await this.detenerTrackingYIntervalos();
         await this.mostrarError(err?.error?.message || 'No se pudo finalizar el recorrido');
       }
     });
