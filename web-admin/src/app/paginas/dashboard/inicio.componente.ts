@@ -25,6 +25,8 @@ export class InicioComponente implements OnInit {
 
   nombreUsuario = '';
   cargando = true;
+  /** 'verificando' | 'activo' | 'offline' */
+  sistemaEstado: 'verificando' | 'activo' | 'offline' = 'verificando';
   private pollInterval: any;
 
   resumen: ResumenDashboard = {
@@ -54,6 +56,8 @@ export class InicioComponente implements OnInit {
   }
 
   cargarResumen(): void {
+    // indicar que estamos comprobando el backend
+    this.sistemaEstado = 'verificando';
     this.cargando = true;
     this.cdr.markForCheck();
 
@@ -67,10 +71,14 @@ export class InicioComponente implements OnInit {
             fotos_hoy: res.data.fotos_hoy || 0
           };
         }
+        // petición correcta -> sistema activo
+        this.sistemaEstado = 'activo';
         this.cargando = false;
         this.cdr.markForCheck();
       },
       error: () => {
+        // fallo -> sistema fuera de línea
+        this.sistemaEstado = 'offline';
         this.cargando = false;
         this.cdr.markForCheck();
       }
@@ -107,6 +115,14 @@ export class InicioComponente implements OnInit {
     return new Date().toLocaleDateString('es-CO', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     });
+  }
+
+  get sistemaTooltip(): string {
+    switch (this.sistemaEstado) {
+      case 'activo': return 'Backend conectado correctamente';
+      case 'verificando': return 'Verificando estado del backend';
+      case 'offline': return 'No se pudo conectar al backend';
+    }
   }
 
   irA(ruta: string): void {

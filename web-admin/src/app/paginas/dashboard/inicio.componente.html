@@ -29,6 +29,15 @@
         <span class="bw-label">Completadas</span>
       </div>
     </div>
+
+    <!-- Indicador de estado: colocado junto al logo para visibilidad operacional -->
+    <div class="sistema-monitor" [ngClass]="sistemaEstado" [attr.title]="sistemaTooltip">
+      <span class="sistema-dot" aria-hidden="true"></span>
+      <span class="sistema-text">
+        {{ sistemaEstado === 'activo' ? 'Sistema activo' : sistemaEstado === 'verificando' ? 'Verificando sistema' : 'Sistema fuera de línea' }}
+      </span>
+    </div>
+
     <div class="bienvenida-logo">
       <img src="assets/logo.png" alt="EcoRutas" class="bienvenida-logo-img" />
     </div>
