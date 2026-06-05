@@ -98,8 +98,6 @@ import { environment } from '../../../environments/environment';
     </mat-dialog-actions>
   `,
   styles: [`
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap');
-
     :host { font-family: 'Nunito', sans-serif; display:block; }
 
     .dialogo-cabecera { display:flex; align-items:center; gap:10px; background:#1e8c34; padding:10px 12px; margin:0; border-radius:4px 4px 0 0; }

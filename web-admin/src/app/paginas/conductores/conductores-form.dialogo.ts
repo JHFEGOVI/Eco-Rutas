@@ -136,8 +136,6 @@ export interface DatosConductorDialogo {
     </mat-dialog-actions>
   `,
   styles: [`
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap');
-
     :host { font-family: 'Nunito', sans-serif; display: block; }
 
     .dialogo-cabecera {
