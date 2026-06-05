@@ -153,14 +153,18 @@ const finalizarRecorridoExterno = async (recorridoExternalId) => {
       headers: { 'Content-Type': 'application/json' },
     });
 
+    const status = respuesta.status;
+    const body = await respuesta.text();
+    console.log(`[finalizarRecorridoExterno] Respuesta de API Externa - Status Code: ${status}, Body: ${body}`);
+
     if (!respuesta.ok) {
-      const texto = await respuesta.text();
-      console.warn(`Advertencia al finalizar recorrido externo [${respuesta.status}]: ${texto}`);
+      console.warn(`Advertencia al finalizar recorrido externo [${status}]: ${body}`);
+      console.error(`[finalizarRecorridoExterno] Error no exitoso (Completo). Status Code: ${status}, Body: ${body}`);
       return false;
     }
     return true;
   } catch (err) {
-    console.error('Error de red al finalizar recorrido en la API externa:', err.message);
+    console.error('Error de red al finalizar recorrido en la API externa:', err);
     return false;
   }
 };
