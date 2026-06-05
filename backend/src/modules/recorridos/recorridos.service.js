@@ -7,7 +7,7 @@ const iniciarRecorrido = async (conductorId) => {
   const asignacionQuery = await pool.query(
     `SELECT * FROM asignaciones 
      WHERE conductor_id = $1 
-       AND fecha = CURRENT_DATE 
+       AND fecha = (NOW() AT TIME ZONE 'America/Bogota')::date 
        AND estado = 'pendiente' 
      ORDER BY created_at ASC 
      LIMIT 1`,
