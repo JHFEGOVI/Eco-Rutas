@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { App } from '@capacitor/app';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { ViewWillEnter } from '@ionic/angular';
@@ -371,6 +372,12 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
     } else {
       this.cargando = false;
     }
+
+    App.addListener('resume', () => {
+      if (this.conductorId) {
+        this.cargarRutasAsignadas(this.conductorId);
+      }
+    });
   }
 
   limpiarIntervalos() {
@@ -385,6 +392,7 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
 
   ngOnDestroy() {
     this.limpiarIntervalos();
+    App.removeAllListeners();
   }
 
   ionViewWillEnter() {
