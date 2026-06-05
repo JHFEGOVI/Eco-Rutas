@@ -151,6 +151,7 @@ const finalizarRecorridoExterno = async (recorridoExternalId) => {
     const respuesta = await fetch(`${process.env.EXTERNAL_API_URL}/api/recorridos/${recorridoExternalId}/finalizar`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ perfil_id: PERFIL_ID_EXTERNO }),
     });
 
     const status = respuesta.status;
