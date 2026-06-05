@@ -370,7 +370,9 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
       this.cargarRutasAsignadas(usuario.id); // carga inicial explícita
       if (!this.intervaloRutas) {
         this.intervaloRutas = interval(15000).subscribe(() => {
-          if (this.conductorId) this.cargarRutasAsignadas(this.conductorId, true);
+          this.ngZone.run(() => {
+            if (this.conductorId) this.cargarRutasAsignadas(this.conductorId, true);
+          });
         });
       }
     } else {
