@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Preferences } from '@capacitor/preferences';
 import {
   IonContent,
   IonSpinner,
@@ -48,8 +49,9 @@ export class LoginPagina {
     const { usuario, contrasena } = this.formulario.value;
 
     this.authServicio.login(usuario, contrasena).subscribe({
-      next: () => {
+      next: async () => {
         this.cargando = false;
+        await Preferences.remove({ key: 'ecorrutas_usuario' });
         this.router.navigate(['/rutas']);
       },
       error: async (err) => {

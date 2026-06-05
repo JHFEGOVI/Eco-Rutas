@@ -28,6 +28,11 @@ export class AuthServicio {
       this.http.post<any>(`${environment.apiUrl}/auth/login`, { username, password }).subscribe({
         next: async (res) => {
           if (res.data?.token) {
+            // Limpiar estado anterior antes de guardar el nuevo
+            this.usuarioSubject.next(null);
+            await Preferences.remove({ key: 'ecorrutas_token' });
+            await Preferences.remove({ key: 'ecorrutas_usuario' });
+
             await Preferences.set({ key: 'ecorrutas_token', value: res.data.token });
             await Preferences.set({ key: 'ecorrutas_usuario', value: JSON.stringify(res.data.user) });
             this.usuarioSubject.next(res.data.user);
