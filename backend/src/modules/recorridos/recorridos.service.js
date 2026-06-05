@@ -21,16 +21,22 @@ const iniciarRecorrido = async (conductorId) => {
   }
   const asignacion = asignacionQuery.rows[0];
 
-  // 2. Busca el primer vehículo con estado 'operativo' disponible (que no tenga un recorrido en curso)
+  if (!asignacion.vehiculo_id) {
+    const error = new Error('La asignación no tiene vehículo asignado');
+    error.status = 400;
+    throw error;
+  }
+
+  // 2. Obtener los datos del vehículo asignado y verificar si no está ya en uso
   const vehiculoQuery = await pool.query(
     `SELECT v.* FROM vehiculos v
      LEFT JOIN recorridos r ON v.id = r.vehiculo_id AND r.estado = 'en_curso'
-     WHERE v.estado = 'operativo' AND r.id IS NULL
-     LIMIT 1`
+     WHERE v.id = $1 AND v.estado = 'operativo' AND r.id IS NULL`,
+    [asignacion.vehiculo_id]
   );
 
   if (vehiculoQuery.rows.length === 0) {
-    const error = new Error('No hay vehículos disponibles en este momento');
+    const error = new Error('El vehículo asignado no está disponible (no existe, no está operativo o ya tiene un recorrido activo)');
     error.status = 400;
     throw error;
   }

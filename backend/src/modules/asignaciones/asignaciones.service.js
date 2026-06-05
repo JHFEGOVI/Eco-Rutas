@@ -41,7 +41,7 @@ const obtenerPorConductor = async (conductorId) => {
   return resultado.rows;
 };
 
-const crear = async ({ conductor_id, ruta_id, fecha }) => {
+const crear = async ({ conductor_id, ruta_id, vehiculo_id, fecha }) => {
   // Validar que el conductor exista y tenga rol 'conductor'
   const resConductor = await pool.query(
     `SELECT id FROM usuarios WHERE id = $1 AND rol = 'conductor' AND activo = true`,
@@ -64,6 +64,17 @@ const crear = async ({ conductor_id, ruta_id, fecha }) => {
     throw error;
   }
 
+  // Validar que el vehículo exista y esté operativo
+  const resVehiculo = await pool.query(
+    `SELECT id FROM vehiculos WHERE id = $1 AND estado = 'operativo'`,
+    [vehiculo_id]
+  );
+  if (!resVehiculo.rows[0]) {
+    const error = new Error('El vehículo no existe o no está operativo');
+    error.status = 400;
+    throw error;
+  }
+
   // Verificar duplicado (conductor + ruta + fecha)
   const resDuplicado = await pool.query(
     `SELECT id FROM asignaciones WHERE conductor_id = $1 AND ruta_id = $2 AND fecha = $3`,
@@ -77,10 +88,10 @@ const crear = async ({ conductor_id, ruta_id, fecha }) => {
 
   // Insertar la asignación
   const resultado = await pool.query(
-    `INSERT INTO asignaciones (conductor_id, ruta_id, fecha)
-     VALUES ($1, $2, $3)
+    `INSERT INTO asignaciones (conductor_id, ruta_id, vehiculo_id, fecha)
+     VALUES ($1, $2, $3, $4)
      RETURNING id`,
-    [conductor_id, ruta_id, fecha]
+    [conductor_id, ruta_id, vehiculo_id, fecha]
   );
 
   return obtenerPorId(resultado.rows[0].id);

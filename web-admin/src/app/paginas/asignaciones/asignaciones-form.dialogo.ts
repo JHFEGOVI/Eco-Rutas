@@ -64,6 +64,21 @@ import { environment } from '../../../environments/environment';
         </div>
 
         <div class="campo-grupo">
+          <label class="campo-label">Vehículo</label>
+          <div class="campo-wrap">
+            <mat-icon class="campo-icono">local_shipping</mat-icon>
+            <select class="campo-input campo-select" formControlName="vehiculo_id">
+              @for (v of vehiculos; track v.id) {
+                <option value="{{ v.id }}">{{ v.placa }} - {{ v.marca }} ({{ v.modelo }})</option>
+              }
+            </select>
+          </div>
+          @if (formulario.get('vehiculo_id')?.hasError('required') && formulario.get('vehiculo_id')?.touched) {
+            <span class="campo-error"><mat-icon class="error-icono">error_outline</mat-icon>Debes asignar un vehículo</span>
+          }
+        </div>
+
+        <div class="campo-grupo">
           <label class="campo-label">Fecha de asignación</label>
           <div class="campo-wrap">
             <mat-icon class="campo-icono">event</mat-icon>
@@ -118,6 +133,7 @@ export class AsignacionesFormDialogo implements OnInit {
   formulario: FormGroup;
   conductores: any[] = [];
   rutas: any[] = [];
+  vehiculos: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -126,10 +142,11 @@ export class AsignacionesFormDialogo implements OnInit {
     private cd: ChangeDetectorRef
   ) {
     this.formulario = this.fb.group({
-      conductor_id: ['', Validators.required],
-      ruta_id:      ['', Validators.required],
-      fecha:        ['', Validators.required],
-    });
+    conductor_id: ['', Validators.required],
+    ruta_id:      ['', Validators.required],
+    vehiculo_id:  ['', Validators.required],
+    fecha:        ['', Validators.required],
+  });
   }
 
   ngOnInit(): void {
@@ -142,6 +159,12 @@ export class AsignacionesFormDialogo implements OnInit {
     // Cargar rutas disponibles
     this.http.get<any>(`${environment.apiUrl}/rutas`).subscribe(res => {
       this.rutas = res.data;
+      this.cd.detectChanges();
+    });
+
+    // Cargar vehículos activos/operativos
+    this.http.get<any>(`${environment.apiUrl}/vehiculos`).subscribe(res => {
+      this.vehiculos = res.data.filter((v: any) => v.estado === 'operativo');
       this.cd.detectChanges();
     });
   }
@@ -158,6 +181,7 @@ export class AsignacionesFormDialogo implements OnInit {
     this.dialogRef.close({
       conductor_id: datosRaw.conductor_id,
       ruta_id: datosRaw.ruta_id,
+      vehiculo_id: datosRaw.vehiculo_id,
       fecha: datosRaw.fecha
     });
   }
