@@ -64,11 +64,18 @@ const iniciarRecorrido = async (conductorId) => {
     const rutaExternalId = rutaQuery.rows[0]?.external_id;
     const vehiculoExternalId = vehiculo.external_id;
 
+    console.log('[iniciarRecorrido] Datos para API Externa:', {
+      vehiculo_id_local: vehiculo.id,
+      vehiculo_external_id: vehiculoExternalId,
+      ruta_external_id: rutaExternalId
+    });
+
     if (rutaExternalId && vehiculoExternalId) {
       const idExterno = await crearRecorridoExterno({
         ruta_external_id: rutaExternalId,
         vehiculo_external_id: vehiculoExternalId
       });
+      console.log('[iniciarRecorrido] Respuesta crearRecorridoExterno:', idExterno);
 
       if (idExterno) {
         await pool.query(
@@ -130,6 +137,7 @@ const finalizarRecorrido = async (recorridoId, conductorId) => {
   );
 
   if (recorrido.external_id) {
+    console.log(`[finalizarRecorrido] Llamando API Externa con external_id: ${recorrido.external_id}`);
     await finalizarRecorridoExterno(recorrido.external_id);
   }
 
