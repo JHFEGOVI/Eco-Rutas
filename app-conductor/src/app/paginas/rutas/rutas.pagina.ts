@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { App } from '@capacitor/app';
 import { Router } from '@angular/router';
@@ -345,6 +345,8 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
     private http: HttpClient,
     private router: Router,
     private toastController: ToastController,
+    private cdr: ChangeDetectorRef,
+    private ngZone: NgZone
   ) {}
 
   async ngOnInit() {
@@ -366,17 +368,21 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
       this.conductorId = usuario.id;
       this.nombreConductor = usuario?.nombre ?? usuario?.username ?? 'Conductor';
       this.cargarRutasAsignadas(usuario.id); // carga inicial explícita
-      this.intervaloRutas = interval(15000).subscribe(() => {
-        if (this.conductorId) this.cargarRutasAsignadas(this.conductorId);
-      });
+      if (!this.intervaloRutas) {
+        this.intervaloRutas = interval(15000).subscribe(() => {
+          if (this.conductorId) this.cargarRutasAsignadas(this.conductorId, true);
+        });
+      }
     } else {
       this.cargando = false;
     }
 
     App.addListener('resume', () => {
-      if (this.conductorId) {
-        this.cargarRutasAsignadas(this.conductorId);
-      }
+      this.ngZone.run(() => {
+        if (this.conductorId) {
+          this.cargarRutasAsignadas(this.conductorId, true);
+        }
+      });
     });
   }
 
@@ -397,7 +403,7 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
 
   ionViewWillEnter() {
     if (this.conductorId) {
-      this.cargarRutasAsignadas(this.conductorId);
+      this.cargarRutasAsignadas(this.conductorId, true);
     }
   }
 
@@ -407,7 +413,7 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
     });
   }
 
-  async cargarRutasAsignadas(conductorId: string) {
+  async cargarRutasAsignadas(conductorId: string, silencioso: boolean = false) {
     if (!conductorId) return;
 
     const autenticado = await this.authServicio.estaAutenticado();
@@ -416,15 +422,28 @@ export class RutasPagina implements OnInit, OnDestroy, ViewWillEnter {
       return;
     }
 
-    this.cargando = true;
-    this.http.get<any>(`${environment.apiUrl}/asignaciones/conductor/${conductorId}`).subscribe({
+    if (!silencioso) {
+      this.cargando = true;
+      this.cdr.detectChanges();
+    }
+
+    const t = new Date().getTime(); // Prevenir caché del WebView
+    this.http.get<any>(`${environment.apiUrl}/asignaciones/conductor/${conductorId}?t=${t}`).subscribe({
       next: (res) => {
-        this.rutas = res.data || [];
-        this.cargando = false;
+        this.ngZone.run(() => {
+          this.rutas = res.data || [];
+          this.cargando = false;
+          this.cdr.detectChanges();
+        });
       },
       error: async (err) => {
-        this.cargando = false;
-        await this.mostrarError(err?.error?.message || 'Error al cargar rutas asignadas');
+        this.ngZone.run(async () => {
+          this.cargando = false;
+          this.cdr.detectChanges();
+          if (!silencioso) {
+            await this.mostrarError(err?.error?.message || 'Error al cargar rutas asignadas');
+          }
+        });
       },
     });
   }
